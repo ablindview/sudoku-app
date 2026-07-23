@@ -1,0 +1,140 @@
+/*
+  --cell-size (rem-based, multiplied by the user's --cell-size-scale so it
+  composes with browser zoom) is declared once at :root in theme.css and
+  shared by both grid modes below.
+*/
+.sudoku-grid {
+  display: inline-grid;
+  grid-template-columns: repeat(9, var(--cell-size));
+  grid-template-rows: repeat(9, var(--cell-size));
+  border: 3px solid var(--color-box-border);
+  background: var(--color-border);
+  gap: 1px;
+}
+
+.sudoku-cell {
+  position: relative;
+  width: var(--cell-size);
+  height: var(--cell-size);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: calc(var(--cell-size) * 0.42);
+  line-height: 1;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+/* Thick box-boundary borders every 3rd column/row, drawn via box-shadow so
+   they don't affect layout sizing. */
+.sudoku-cell[data-col='2'],
+.sudoku-cell[data-col='5'] {
+  box-shadow: inset -2px 0 0 var(--color-box-border);
+}
+.sudoku-cell[data-row='2'],
+.sudoku-cell[data-row='5'] {
+  box-shadow: inset 0 -2px 0 var(--color-box-border);
+}
+
+.sudoku-cell--given {
+  color: var(--color-given-text);
+  font-weight: 700;
+}
+
+.sudoku-cell--player {
+  color: var(--color-player-text);
+  font-weight: 600;
+}
+
+.sudoku-cell--hinted {
+  color: var(--color-hint-text);
+  font-weight: 600;
+  font-style: italic;
+}
+
+.sudoku-cell--selected {
+  background: var(--color-selected-bg);
+  color: var(--color-selected-text);
+}
+
+/* Conflicts are never color-only: a dashed border marks them in every theme,
+   in addition to the color change, for users who rely on high contrast or
+   don't perceive the color difference. Drawn as a ::after pseudo-element
+   (not `outline`) so it never competes with the :focus-visible ring on a
+   cell that is simultaneously focused and conflicting — both must stay
+   visible at once. */
+.sudoku-cell--conflict {
+  background: var(--color-conflict-bg);
+  color: var(--color-conflict-text);
+}
+
+.sudoku-cell--conflict::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border: 2px dashed var(--color-conflict-text);
+  pointer-events: none;
+}
+
+.sudoku-cell-notes {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  width: 100%;
+  height: 100%;
+  font-size: calc(var(--cell-size) * 0.2);
+  color: var(--color-notes-text);
+}
+
+.sudoku-cell-notes span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Mode B: 81 <input> cells in a <table>. Reuses the same --sudoku-cell--given
+   / --player / --hinted / --selected / --conflict classes as Mode A (applied
+   to the <td> here instead of a div) so both modes share one theming story. */
+.sudoku-input-grid {
+  border-collapse: collapse;
+  border: 3px solid var(--color-box-border);
+}
+
+.sudoku-input-cell {
+  position: relative;
+  width: var(--cell-size);
+  height: var(--cell-size);
+  padding: 0;
+  border: 1px solid var(--color-border);
+}
+
+.sudoku-input-cell[data-col='2'],
+.sudoku-input-cell[data-col='5'] {
+  border-right: 3px solid var(--color-box-border);
+}
+.sudoku-input-cell[data-row='2'],
+.sudoku-input-cell[data-row='5'] {
+  border-bottom: 3px solid var(--color-box-border);
+}
+
+.sudoku-input {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  text-align: center;
+  font-size: calc(var(--cell-size) * 0.42);
+  font-weight: inherit;
+  font-style: inherit;
+}
+
+.sudoku-input-cell .sudoku-cell-notes {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}

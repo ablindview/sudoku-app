@@ -1,0 +1,101 @@
+/*
+  Color/sizing tokens. [data-theme] on <html> selects a preset; the value is
+  set synchronously in main.tsx (before first paint) and kept in sync by
+  SettingsProvider afterward. :root holds the light-theme values as the
+  no-JS/first-render fallback.
+*/
+:root,
+[data-theme='light'] {
+  --color-bg: #f7f7f5;
+  --color-surface: #ffffff;
+  --color-text: #1a1a1a;
+  --color-text-muted: #5a5a5a;
+  --color-border: #8a8a8a;
+  --color-box-border: #333333;
+  --color-given-text: #1a1a1a;
+  --color-player-text: #1258b8;
+  --color-hint-text: #7a3fa0;
+  --color-notes-text: #5a5a5a;
+  --color-conflict-bg: #fde3e1;
+  --color-conflict-text: #9c1f13;
+  --color-selected-bg: #d8ecff;
+  --color-selected-text: #1a1a1a;
+  --color-focus-ring: #0b57d0;
+}
+
+[data-theme='dark'] {
+  --color-bg: #17181a;
+  --color-surface: #232427;
+  --color-text: #f1f1f1;
+  --color-text-muted: #b6b6b6;
+  --color-border: #75767a;
+  --color-box-border: #d8d8d8;
+  --color-given-text: #f1f1f1;
+  --color-player-text: #7fb2ff;
+  --color-hint-text: #d3a6ff;
+  --color-notes-text: #b6b6b6;
+  --color-conflict-bg: #4a2220;
+  --color-conflict-text: #ff9b90;
+  --color-selected-bg: #2b3d55;
+  --color-selected-text: #f1f1f1;
+  --color-focus-ring: #7fb2ff;
+}
+
+/* Pure black-on-white. Conflicts are never color-only: see .cell--conflict
+   border treatment in grid.css, which applies in every theme. */
+[data-theme='contrast-light'] {
+  --color-bg: #ffffff;
+  --color-surface: #ffffff;
+  --color-text: #000000;
+  --color-text-muted: #000000;
+  --color-border: #000000;
+  --color-box-border: #000000;
+  --color-given-text: #000000;
+  --color-player-text: #000000;
+  --color-hint-text: #000000;
+  --color-notes-text: #000000;
+  --color-conflict-bg: #ffffff;
+  --color-conflict-text: #000000;
+  --color-selected-bg: #ffe600;
+  --color-selected-text: #000000;
+  --color-focus-ring: #000000;
+}
+
+/* Pure white-on-black. */
+[data-theme='contrast-dark'] {
+  --color-bg: #000000;
+  --color-surface: #000000;
+  --color-text: #ffffff;
+  --color-text-muted: #ffffff;
+  --color-border: #ffffff;
+  --color-box-border: #ffffff;
+  --color-given-text: #ffffff;
+  --color-player-text: #ffffff;
+  --color-hint-text: #ffffff;
+  --color-notes-text: #ffffff;
+  --color-conflict-bg: #000000;
+  --color-conflict-text: #ffffff;
+  --color-selected-bg: #ffe600;
+  --color-selected-text: #000000;
+  --color-focus-ring: #ffe600;
+}
+
+:root {
+  --cell-size-base: 2.75rem;
+  --cell-size-scale: 1;
+  --font-size-base: 1rem;
+  /* clamp() keeps a minimum touch target even at the smallest scale; shared
+     by both grid modes (grid.css) rather than redeclared per-mode. */
+  --cell-size: clamp(2.5rem, calc(var(--cell-size-base) * var(--cell-size-scale)), 6rem);
+}
+
+/* At the default scale, 9 * 2.75rem cells (plus gaps/border) is wider than
+   many phone screens — narrow the base and clamp floor so the grid fits
+   without forcing horizontal scroll at 100% cell size. The user's own
+   --cell-size-scale setting still composes on top of this as normal. */
+@media (max-width: 480px) {
+  :root {
+    --cell-size-base: 2.15rem;
+    --cell-size: clamp(1.9rem, calc(var(--cell-size-base) * var(--cell-size-scale)), 6rem);
+  }
+}

@@ -1,0 +1,191 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+  font-size: var(--font-size-base);
+  min-height: 100vh;
+}
+
+/* Screen-reader-only content: visually hidden but still announced. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Consistent, visible focus ring across all interactive elements, in every
+   theme (high-contrast themes rely on --color-focus-ring being maximally
+   distinct from --color-bg/--color-surface). */
+:focus-visible {
+  outline: 3px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+button,
+input,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+button,
+select {
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: 0.25rem;
+  padding: 0.5rem 0.75rem;
+  min-height: 44px;
+  cursor: pointer;
+}
+
+button:disabled {
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Background/text swap alone conveys the pressed state; deliberately not
+   reusing --color-focus-ring for the border here, since in contrast-dark
+   that token equals --color-selected-bg and would visually disappear into
+   the button's own fill. */
+button[aria-pressed='true'] {
+  background: var(--color-selected-bg);
+  color: var(--color-selected-text);
+}
+
+.sudoku-grid-loading {
+  color: var(--color-text-muted);
+}
+
+.app-shell {
+  max-width: 40rem;
+  margin-inline: auto;
+  padding: 1rem 1rem 3rem;
+  /* Wide content (a large grid at high cell-size-scale) scrolls inside this
+     container rather than forcing the whole page to scroll horizontally. */
+  overflow-x: auto;
+}
+
+@media (max-width: 480px) {
+  .app-shell {
+    padding-inline: 0.5rem;
+  }
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.settings-dialog {
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  max-width: min(28rem, 90vw);
+}
+
+.settings-dialog::backdrop {
+  background: rgb(0 0 0 / 50%);
+}
+
+.settings-section {
+  border: 1px solid var(--color-border);
+  border-radius: 0.25rem;
+  padding: 1rem;
+  margin-block-end: 1rem;
+}
+
+.settings-section legend {
+  padding-inline: 0.25rem;
+  font-weight: 600;
+}
+
+.settings-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-block-end: 0.75rem;
+}
+
+.settings-field input[type='range'] {
+  width: 100%;
+}
+
+.settings-radio-label,
+.settings-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-block-end: 0.5rem;
+}
+
+.settings-hint {
+  margin: 0 0 0.5rem 1.75rem;
+  color: var(--color-text-muted);
+  font-size: 0.875em;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 1.5rem;
+  margin-block-end: 1rem;
+}
+
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.status-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.5rem;
+  margin-block-start: 1rem;
+  color: var(--color-text-muted);
+}
+
+.status-bar-solved {
+  color: var(--color-player-text);
+  font-weight: 700;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
