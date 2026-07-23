@@ -16,20 +16,21 @@ import type { CellDisplayState } from './cellLabel'
  * cells; this sidesteps that class of bug entirely instead of re-ordering
  * around it.)
  *
- * Selected / same-digit / row-col-band are all drawn as a
- * --color-ring-primary line then a --color-ring-secondary line at a larger
- * offset (see theme.css for why the primary/secondary pairing is themed
- * rather than a fixed white-then-black: a fixed order left the visible
- * portion nearly invisible against an empty cell in dark mode, since black
- * on the dark surface color is only ~1.35:1). The same-digit ring
- * deliberately does NOT use the cell's own --digit-ink color the way an
- * earlier version did — that made the "you're highlighted" ring blend into
- * the digit's own already-visible text color instead of reading as a
- * distinct signal. "Selected", "same-digit highlight", and "in the focused
- * row/column" are mutually exclusive in valid, non-conflicting play
- * (Sudoku's own rules mean a matching digit can never legitimately share a
- * row/column with the selected cell), so these never need to compose with
- * each other.
+ * Selected / same-digit use --color-ring-primary then --color-ring-secondary
+ * at a larger offset; the row/column band uses the separate
+ * --color-band-primary/-secondary pair (see theme.css for both — themed per
+ * mode rather than a fixed white-then-black, since a fixed order left the
+ * visible portion nearly invisible against an empty cell in dark mode, and
+ * the band pair collapses to a single solid color in dark mode specifically
+ * because even the correctly-themed two-tone version was reported as still
+ * hard to see there). The same-digit ring deliberately does NOT use the
+ * cell's own --digit-ink color the way an earlier version did — that made
+ * the "you're highlighted" ring blend into the digit's own already-visible
+ * text color instead of reading as a distinct signal. "Selected",
+ * "same-digit highlight", and "in the focused row/column" are mutually
+ * exclusive in valid, non-conflicting play (Sudoku's own rules mean a
+ * matching digit can never legitimately share a row/column with the
+ * selected cell), so these never need to compose with each other.
  */
 export function buildCellInlineStyle(
   cell: CellDisplayState,
@@ -74,12 +75,12 @@ export function buildCellInlineStyle(
     const inSelectedRow = selectedRow !== null && row === selectedRow
     const inSelectedCol = selectedCol !== null && col === selectedCol
     if (inSelectedRow) {
-      shadows.push('inset 0 4px 0 0 var(--color-ring-primary)', 'inset 0 7px 0 0 var(--color-ring-secondary)')
-      shadows.push('inset 0 -4px 0 0 var(--color-ring-primary)', 'inset 0 -7px 0 0 var(--color-ring-secondary)')
+      shadows.push('inset 0 4px 0 0 var(--color-band-primary)', 'inset 0 7px 0 0 var(--color-band-secondary)')
+      shadows.push('inset 0 -4px 0 0 var(--color-band-primary)', 'inset 0 -7px 0 0 var(--color-band-secondary)')
     }
     if (inSelectedCol) {
-      shadows.push('inset 4px 0 0 0 var(--color-ring-primary)', 'inset 7px 0 0 0 var(--color-ring-secondary)')
-      shadows.push('inset -4px 0 0 0 var(--color-ring-primary)', 'inset -7px 0 0 0 var(--color-ring-secondary)')
+      shadows.push('inset 4px 0 0 0 var(--color-band-primary)', 'inset 7px 0 0 0 var(--color-band-secondary)')
+      shadows.push('inset -4px 0 0 0 var(--color-band-primary)', 'inset -7px 0 0 0 var(--color-band-secondary)')
     }
   }
 

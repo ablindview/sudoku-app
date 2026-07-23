@@ -92,19 +92,19 @@ describe('buildCellInlineStyle', () => {
 
     it('gives a non-selected cell in the focused row a top+bottom double-line band', () => {
       const s = style(baseCell, 4, 2, 4, 7) // row 4 matches selectedRow, col 2 != selectedCol 7
-      expect(s.boxShadow).toContain('inset 0 4px 0 0 var(--color-ring-primary)')
-      expect(s.boxShadow).toContain('inset 0 7px 0 0 var(--color-ring-secondary)')
-      expect(s.boxShadow).toContain('inset 0 -4px 0 0 var(--color-ring-primary)')
-      expect(s.boxShadow).toContain('inset 0 -7px 0 0 var(--color-ring-secondary)')
+      expect(s.boxShadow).toContain('inset 0 4px 0 0 var(--color-band-primary)')
+      expect(s.boxShadow).toContain('inset 0 7px 0 0 var(--color-band-secondary)')
+      expect(s.boxShadow).toContain('inset 0 -4px 0 0 var(--color-band-primary)')
+      expect(s.boxShadow).toContain('inset 0 -7px 0 0 var(--color-band-secondary)')
       expect(s.boxShadow).not.toContain('inset 4px 0 0 0') // no column band
     })
 
     it('gives a non-selected cell in the focused column a left+right double-line band', () => {
       const s = style(baseCell, 1, 7, 4, 7) // col 7 matches selectedCol, row 1 != selectedRow 4
-      expect(s.boxShadow).toContain('inset 4px 0 0 0 var(--color-ring-primary)')
-      expect(s.boxShadow).toContain('inset 7px 0 0 0 var(--color-ring-secondary)')
-      expect(s.boxShadow).toContain('inset -4px 0 0 0 var(--color-ring-primary)')
-      expect(s.boxShadow).toContain('inset -7px 0 0 0 var(--color-ring-secondary)')
+      expect(s.boxShadow).toContain('inset 4px 0 0 0 var(--color-band-primary)')
+      expect(s.boxShadow).toContain('inset 7px 0 0 0 var(--color-band-secondary)')
+      expect(s.boxShadow).toContain('inset -4px 0 0 0 var(--color-band-primary)')
+      expect(s.boxShadow).toContain('inset -7px 0 0 0 var(--color-band-secondary)')
       expect(s.boxShadow).not.toContain('inset 0 4px 0 0') // no row band
     })
 
