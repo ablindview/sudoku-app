@@ -13,26 +13,39 @@ export interface CellDisplayState {
   isHinted: boolean
   hasConflict: boolean
   isSelected: boolean
+  isDigitHighlighted: boolean
 }
 
 /**
  * `revealConflicts` mirrors settings.autoCheckConflicts: when false, rule
  * violations stay tracked internally (for the "Check board" count) but are
  * not surfaced on individual cells until the player explicitly asks.
+ *
+ * `highlightedValue` is the value of the currently selected cell (0 if empty
+ * or nothing selected). Any other filled cell sharing that value is flagged
+ * isDigitHighlighted — selecting a cell (by click, tap, or keyboard nav)
+ * highlights every other instance of its digit across the board.
  */
-export function buildCellState(state: GameState, index: number, revealConflicts = true): CellDisplayState {
+export function buildCellState(
+  state: GameState,
+  index: number,
+  revealConflicts = true,
+  highlightedValue: CellValue = 0,
+): CellDisplayState {
   const { row, col } = toRowCol(index)
+  const value = state.values[index]
   return {
     index,
     row,
     col,
     box: boxOf(row, col),
-    value: state.values[index],
+    value,
     notesDigits: digitsInNotesMask(state.notes[index]),
     isGiven: state.givenMask[index],
     isHinted: state.hintedCells.has(index),
     hasConflict: revealConflicts && state.conflicts.has(index),
     isSelected: state.selectedIndex === index,
+    isDigitHighlighted: highlightedValue !== 0 && value === highlightedValue,
   }
 }
 

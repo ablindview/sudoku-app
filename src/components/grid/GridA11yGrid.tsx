@@ -5,6 +5,7 @@ import { useGameDispatch, useGameState } from '../../game/useGame'
 import { useSettings } from '../../settings/useSettings'
 import { CellVisual } from './CellVisual'
 import { buildCellState, gridCellLabel } from './cellLabel'
+import { buildCellInlineStyle } from './cellStyle'
 import { computeNextIndex, isClearKey, NAV_KEYS, parseDigitKey } from './gridKeyboard'
 
 const ROWS = Array.from({ length: 9 }, (_, i) => i)
@@ -70,20 +71,24 @@ export function GridA11yGrid() {
     }
   }
 
+  // The digit of whichever cell is selected — every other cell sharing it
+  // gets a highlight ring, so selecting a placed number (click, tap, or
+  // keyboard nav) highlights all its other instances across the board.
+  const highlightedValue = state.selectedIndex !== null ? state.values[state.selectedIndex] : 0
+
   return (
     <div className="sudoku-grid" role="grid" aria-label="Sudoku puzzle, 9 by 9" aria-rowcount={9} aria-colcount={9}>
       {ROWS.map((row) => (
         <div key={row} role="row" aria-rowindex={row + 1} style={{ display: 'contents' }}>
           {COLS.map((col) => {
             const index = toIndex(row, col)
-            const cell = buildCellState(state, index, settings.autoCheckConflicts)
+            const cell = buildCellState(state, index, settings.autoCheckConflicts, highlightedValue)
 
             const classNames = ['sudoku-cell']
             if (cell.isGiven) classNames.push('sudoku-cell--given')
             else if (cell.isHinted) classNames.push('sudoku-cell--hinted')
             else if (cell.value !== 0) classNames.push('sudoku-cell--player')
             if (cell.hasConflict) classNames.push('sudoku-cell--conflict')
-            if (cell.isSelected) classNames.push('sudoku-cell--selected')
 
             return (
               <div
@@ -99,6 +104,7 @@ export function GridA11yGrid() {
                 data-row={row}
                 data-col={col}
                 className={classNames.join(' ')}
+                style={buildCellInlineStyle(cell, row, col)}
                 onClick={() => dispatch({ type: 'SELECT_CELL', index })}
                 onKeyDown={(event) => handleKeyDown(event, index)}
               >

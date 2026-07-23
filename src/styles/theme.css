@@ -21,6 +21,42 @@
   --color-selected-bg: #d8ecff;
   --color-selected-text: #1a1a1a;
   --color-focus-ring: #0b57d0;
+
+  /* Per-digit identity colors (1-9): validated categorical palette (adjacent
+     CVD ΔE and normal-vision-floor checks pass; see project notes). Cell
+     background = the digit's color; ink is chosen per-swatch so text on top
+     clears 4.5:1. Box-outline colors reuse the same 9 hues, keyed by 3x3 box
+     index instead of digit value, so "which box am I in" gets its own
+     independent visual channel. Neither channel is the sole way to identify
+     a digit or a box — the numeral glyph and the aria-label position are
+     always present regardless of color perception. */
+  --identity-1: #2976d2;
+  --identity-1-ink: #ffffff;
+  --identity-2: #eb6834;
+  --identity-2-ink: #1a1a1a;
+  --identity-3: #1baf7a;
+  --identity-3-ink: #1a1a1a;
+  --identity-4: #eda100;
+  --identity-4-ink: #1a1a1a;
+  --identity-5: #e87ba4;
+  --identity-5-ink: #1a1a1a;
+  --identity-6: #008300;
+  --identity-6-ink: #ffffff;
+  --identity-7: #4a3aa7;
+  --identity-7-ink: #ffffff;
+  --identity-8: #e44d4c;
+  --identity-8-ink: #1a1a1a;
+  --identity-9: #0097ab;
+  --identity-9-ink: #1a1a1a;
+  --box-outline-1: var(--identity-1);
+  --box-outline-2: var(--identity-2);
+  --box-outline-3: var(--identity-3);
+  --box-outline-4: var(--identity-4);
+  --box-outline-5: var(--identity-5);
+  --box-outline-6: var(--identity-6);
+  --box-outline-7: var(--identity-7);
+  --box-outline-8: var(--identity-8);
+  --box-outline-9: var(--identity-9);
 }
 
 [data-theme='dark'] {
@@ -39,10 +75,41 @@
   --color-selected-bg: #2b3d55;
   --color-selected-text: #f1f1f1;
   --color-focus-ring: #7fb2ff;
+
+  --identity-1: #3987e5;
+  --identity-1-ink: #1a1a1a;
+  --identity-2: #da5c2a;
+  --identity-2-ink: #1a1a1a;
+  --identity-3: #199e70;
+  --identity-3-ink: #1a1a1a;
+  --identity-4: #c98500;
+  --identity-4-ink: #1a1a1a;
+  --identity-5: #d65584;
+  --identity-5-ink: #1a1a1a;
+  --identity-6: #007e00;
+  --identity-6-ink: #ffffff;
+  --identity-7: #9085e9;
+  --identity-7-ink: #1a1a1a;
+  --identity-8: #e66767;
+  --identity-8-ink: #1a1a1a;
+  --identity-9: #1a99ab;
+  --identity-9-ink: #1a1a1a;
+  --box-outline-1: var(--identity-1);
+  --box-outline-2: var(--identity-2);
+  --box-outline-3: var(--identity-3);
+  --box-outline-4: var(--identity-4);
+  --box-outline-5: var(--identity-5);
+  --box-outline-6: var(--identity-6);
+  --box-outline-7: var(--identity-7);
+  --box-outline-8: var(--identity-8);
+  --box-outline-9: var(--identity-9);
 }
 
 /* Pure black-on-white. Conflicts are never color-only: see .cell--conflict
-   border treatment in grid.css, which applies in every theme. */
+   border treatment in grid.css, which applies in every theme. Deliberately
+   NOT colorized by digit/box here: introducing hue would undercut the point
+   of a theme built for users who need maximum, color-independent contrast —
+   every --identity-N maps to the theme's own surface/text/border instead. */
 [data-theme='contrast-light'] {
   --color-bg: #ffffff;
   --color-surface: #ffffff;
@@ -59,9 +126,37 @@
   --color-selected-bg: #ffe600;
   --color-selected-text: #000000;
   --color-focus-ring: #000000;
+
+  --identity-1: var(--color-surface);
+  --identity-1-ink: var(--color-text);
+  --identity-2: var(--color-surface);
+  --identity-2-ink: var(--color-text);
+  --identity-3: var(--color-surface);
+  --identity-3-ink: var(--color-text);
+  --identity-4: var(--color-surface);
+  --identity-4-ink: var(--color-text);
+  --identity-5: var(--color-surface);
+  --identity-5-ink: var(--color-text);
+  --identity-6: var(--color-surface);
+  --identity-6-ink: var(--color-text);
+  --identity-7: var(--color-surface);
+  --identity-7-ink: var(--color-text);
+  --identity-8: var(--color-surface);
+  --identity-8-ink: var(--color-text);
+  --identity-9: var(--color-surface);
+  --identity-9-ink: var(--color-text);
+  --box-outline-1: var(--color-box-border);
+  --box-outline-2: var(--color-box-border);
+  --box-outline-3: var(--color-box-border);
+  --box-outline-4: var(--color-box-border);
+  --box-outline-5: var(--color-box-border);
+  --box-outline-6: var(--color-box-border);
+  --box-outline-7: var(--color-box-border);
+  --box-outline-8: var(--color-box-border);
+  --box-outline-9: var(--color-box-border);
 }
 
-/* Pure white-on-black. */
+/* Pure white-on-black. Same rationale as contrast-light above. */
 [data-theme='contrast-dark'] {
   --color-bg: #000000;
   --color-surface: #000000;
@@ -78,6 +173,34 @@
   --color-selected-bg: #ffe600;
   --color-selected-text: #000000;
   --color-focus-ring: #ffe600;
+
+  --identity-1: var(--color-surface);
+  --identity-1-ink: var(--color-text);
+  --identity-2: var(--color-surface);
+  --identity-2-ink: var(--color-text);
+  --identity-3: var(--color-surface);
+  --identity-3-ink: var(--color-text);
+  --identity-4: var(--color-surface);
+  --identity-4-ink: var(--color-text);
+  --identity-5: var(--color-surface);
+  --identity-5-ink: var(--color-text);
+  --identity-6: var(--color-surface);
+  --identity-6-ink: var(--color-text);
+  --identity-7: var(--color-surface);
+  --identity-7-ink: var(--color-text);
+  --identity-8: var(--color-surface);
+  --identity-8-ink: var(--color-text);
+  --identity-9: var(--color-surface);
+  --identity-9-ink: var(--color-text);
+  --box-outline-1: var(--color-box-border);
+  --box-outline-2: var(--color-box-border);
+  --box-outline-3: var(--color-box-border);
+  --box-outline-4: var(--color-box-border);
+  --box-outline-5: var(--color-box-border);
+  --box-outline-6: var(--color-box-border);
+  --box-outline-7: var(--color-box-border);
+  --box-outline-8: var(--color-box-border);
+  --box-outline-9: var(--color-box-border);
 }
 
 :root {

@@ -5,6 +5,7 @@ import { useGameDispatch, useGameState } from '../../game/useGame'
 import { useSettings } from '../../settings/useSettings'
 import { NotesGrid } from './CellVisual'
 import { buildCellState, inputCellLabel } from './cellLabel'
+import { buildCellInlineStyle } from './cellStyle'
 import { computeNextIndex, NAV_KEYS, parseDigitKey } from './gridKeyboard'
 
 const ROWS = Array.from({ length: 9 }, (_, i) => i)
@@ -77,6 +78,11 @@ export function GridInputTable() {
     }
   }
 
+  // The digit of whichever cell is selected — every other cell sharing it
+  // gets a highlight ring, so selecting a placed number (click, tap, or
+  // keyboard nav) highlights all its other instances across the board.
+  const highlightedValue = state.selectedIndex !== null ? state.values[state.selectedIndex] : 0
+
   return (
     <table className="sudoku-input-grid">
       <caption className="visually-hidden">
@@ -88,17 +94,22 @@ export function GridInputTable() {
           <tr key={row}>
             {COLS.map((col) => {
               const index = toIndex(row, col)
-              const cell = buildCellState(state, index, settings.autoCheckConflicts)
+              const cell = buildCellState(state, index, settings.autoCheckConflicts, highlightedValue)
 
               const classNames = ['sudoku-input-cell']
               if (cell.isGiven) classNames.push('sudoku-cell--given')
               else if (cell.isHinted) classNames.push('sudoku-cell--hinted')
               else if (cell.value !== 0) classNames.push('sudoku-cell--player')
               if (cell.hasConflict) classNames.push('sudoku-cell--conflict')
-              if (cell.isSelected) classNames.push('sudoku-cell--selected')
 
               return (
-                <td key={index} data-row={row} data-col={col} className={classNames.join(' ')}>
+                <td
+                  key={index}
+                  data-row={row}
+                  data-col={col}
+                  className={classNames.join(' ')}
+                  style={buildCellInlineStyle(cell, row, col)}
+                >
                   <input
                     ref={(el) => {
                       inputRefs.current[index] = el
