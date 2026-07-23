@@ -16,14 +16,20 @@ import type { CellDisplayState } from './cellLabel'
  * cells; this sidesteps that class of bug entirely instead of re-ordering
  * around it.)
  *
- * Selected / row-col-band rings are drawn as a white line then a black line
- * at a slightly larger offset: whichever theme's identity color sits under
- * it, at least one of white or black clears 3:1 contrast against all 9 (
- * verified numerically — no single hue does, but the pair always covers it).
- * "Selected", "same-digit highlight", and "in the focused row/column" are
- * mutually exclusive in valid, non-conflicting play (Sudoku's own rules mean
- * a matching digit can never legitimately share a row/column with the
- * selected cell), so these never need to compose with each other.
+ * Selected / same-digit / row-col-band are all drawn as a
+ * --color-ring-primary line then a --color-ring-secondary line at a larger
+ * offset (see theme.css for why the primary/secondary pairing is themed
+ * rather than a fixed white-then-black: a fixed order left the visible
+ * portion nearly invisible against an empty cell in dark mode, since black
+ * on the dark surface color is only ~1.35:1). The same-digit ring
+ * deliberately does NOT use the cell's own --digit-ink color the way an
+ * earlier version did — that made the "you're highlighted" ring blend into
+ * the digit's own already-visible text color instead of reading as a
+ * distinct signal. "Selected", "same-digit highlight", and "in the focused
+ * row/column" are mutually exclusive in valid, non-conflicting play
+ * (Sudoku's own rules mean a matching digit can never legitimately share a
+ * row/column with the selected cell), so these never need to compose with
+ * each other.
  */
 export function buildCellInlineStyle(
   cell: CellDisplayState,
@@ -61,19 +67,19 @@ export function buildCellInlineStyle(
 
   const shadows: string[] = []
   if (cell.isSelected) {
-    shadows.push('inset 0 0 0 3px #ffffff', 'inset 0 0 0 6px #000000')
+    shadows.push('inset 0 0 0 3px var(--color-ring-primary)', 'inset 0 0 0 6px var(--color-ring-secondary)')
   } else if (cell.isDigitHighlighted) {
-    shadows.push('inset 0 0 0 4px var(--digit-ink, var(--color-text))')
+    shadows.push('inset 0 0 0 4px var(--color-ring-primary)', 'inset 0 0 0 7px var(--color-ring-secondary)')
   } else {
     const inSelectedRow = selectedRow !== null && row === selectedRow
     const inSelectedCol = selectedCol !== null && col === selectedCol
     if (inSelectedRow) {
-      shadows.push('inset 0 4px 0 0 #ffffff', 'inset 0 7px 0 0 #000000')
-      shadows.push('inset 0 -4px 0 0 #ffffff', 'inset 0 -7px 0 0 #000000')
+      shadows.push('inset 0 4px 0 0 var(--color-ring-primary)', 'inset 0 7px 0 0 var(--color-ring-secondary)')
+      shadows.push('inset 0 -4px 0 0 var(--color-ring-primary)', 'inset 0 -7px 0 0 var(--color-ring-secondary)')
     }
     if (inSelectedCol) {
-      shadows.push('inset 4px 0 0 0 #ffffff', 'inset 7px 0 0 0 #000000')
-      shadows.push('inset -4px 0 0 0 #ffffff', 'inset -7px 0 0 0 #000000')
+      shadows.push('inset 4px 0 0 0 var(--color-ring-primary)', 'inset 7px 0 0 0 var(--color-ring-secondary)')
+      shadows.push('inset -4px 0 0 0 var(--color-ring-primary)', 'inset -7px 0 0 0 var(--color-ring-secondary)')
     }
   }
 

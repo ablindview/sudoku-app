@@ -22,6 +22,21 @@
   --color-selected-text: #1a1a1a;
   --color-focus-ring: #0b57d0;
 
+  /* Selection ring / row-column band / same-digit ring all draw a two-color
+     line: --color-ring-primary is the DOMINANT (larger-area) layer, chosen
+     per theme so it stays highly visible against a plain, empty cell (the
+     most common case — including the very first cell selected on load) as
+     well as against most of the 9 identity colors. --color-ring-secondary
+     is a thinner rescue layer for whichever few identity colors the primary
+     doesn't cover. (Both pure black and pure white are needed as a *pair* —
+     no single color clears 3:1 against all 9 identity colors — but a fixed
+     white-then-black order made the visible portion nearly disappear against
+     a dark surface in dark mode, since black-on-#232427 is only 1.35:1. This
+     is themed instead of hardcoded so the dominant layer is always the one
+     that actually works on this theme's surface.) */
+  --color-ring-primary: #000000;
+  --color-ring-secondary: #ffffff;
+
   /* Per-digit identity colors (1-9): validated categorical palette, boosted
      to near-maximum saturation (re-validated: lightness band, chroma floor,
      CVD separation, and normal-vision floor all still pass) so they read as
@@ -82,6 +97,11 @@
   --color-selected-text: #f1f1f1;
   --color-focus-ring: #7fb2ff;
 
+  /* White is the dominant ring layer here (opposite of light theme) — see
+     the light theme's comment above for the full rationale. */
+  --color-ring-primary: #ffffff;
+  --color-ring-secondary: #000000;
+
   --identity-1: #2585f9;
   --identity-1-ink: #1a1a1a;
   --identity-2: #f94f0b;
@@ -135,6 +155,8 @@
   --color-selected-bg: #ffe600;
   --color-selected-text: #000000;
   --color-focus-ring: #000000;
+  --color-ring-primary: #000000;
+  --color-ring-secondary: #ffffff;
 
   --identity-1: var(--color-surface);
   --identity-1-ink: var(--color-text);
@@ -182,6 +204,8 @@
   --color-selected-bg: #ffe600;
   --color-selected-text: #000000;
   --color-focus-ring: #ffe600;
+  --color-ring-primary: #ffffff;
+  --color-ring-secondary: #000000;
 
   --identity-1: var(--color-surface);
   --identity-1-ink: var(--color-text);

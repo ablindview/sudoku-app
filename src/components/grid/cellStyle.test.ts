@@ -73,37 +73,46 @@ describe('buildCellInlineStyle', () => {
   })
 
   describe('box-shadow rings (selected / digit-highlight / row-col band)', () => {
-    it('gives the selected cell a white-then-black double ring on all four sides', () => {
+    it('gives the selected cell a primary-then-secondary double ring on all four sides', () => {
       const s = style({ ...baseCell, isSelected: true }, 4, 4)
-      expect(s.boxShadow).toBe('inset 0 0 0 3px #ffffff, inset 0 0 0 6px #000000')
+      expect(s.boxShadow).toBe(
+        'inset 0 0 0 3px var(--color-ring-primary), inset 0 0 0 6px var(--color-ring-secondary)',
+      )
     })
 
-    it('gives a same-digit-highlighted cell a ring using its own ink color', () => {
+    it('gives a same-digit-highlighted cell the same themed ring pair, not its own ink color', () => {
+      // Reusing --digit-ink here would blend the "you're highlighted" ring
+      // into the digit's own already-visible text color instead of reading
+      // as a distinct signal — see the module doc for why this was changed.
       const s = style({ ...baseCell, value: 7, isDigitHighlighted: true }, 4, 4)
-      expect(s.boxShadow).toBe('inset 0 0 0 4px var(--digit-ink, var(--color-text))')
+      expect(s.boxShadow).toBe(
+        'inset 0 0 0 4px var(--color-ring-primary), inset 0 0 0 7px var(--color-ring-secondary)',
+      )
     })
 
     it('gives a non-selected cell in the focused row a top+bottom double-line band', () => {
       const s = style(baseCell, 4, 2, 4, 7) // row 4 matches selectedRow, col 2 != selectedCol 7
-      expect(s.boxShadow).toContain('inset 0 4px 0 0 #ffffff')
-      expect(s.boxShadow).toContain('inset 0 7px 0 0 #000000')
-      expect(s.boxShadow).toContain('inset 0 -4px 0 0 #ffffff')
-      expect(s.boxShadow).toContain('inset 0 -7px 0 0 #000000')
+      expect(s.boxShadow).toContain('inset 0 4px 0 0 var(--color-ring-primary)')
+      expect(s.boxShadow).toContain('inset 0 7px 0 0 var(--color-ring-secondary)')
+      expect(s.boxShadow).toContain('inset 0 -4px 0 0 var(--color-ring-primary)')
+      expect(s.boxShadow).toContain('inset 0 -7px 0 0 var(--color-ring-secondary)')
       expect(s.boxShadow).not.toContain('inset 4px 0 0 0') // no column band
     })
 
     it('gives a non-selected cell in the focused column a left+right double-line band', () => {
       const s = style(baseCell, 1, 7, 4, 7) // col 7 matches selectedCol, row 1 != selectedRow 4
-      expect(s.boxShadow).toContain('inset 4px 0 0 0 #ffffff')
-      expect(s.boxShadow).toContain('inset 7px 0 0 0 #000000')
-      expect(s.boxShadow).toContain('inset -4px 0 0 0 #ffffff')
-      expect(s.boxShadow).toContain('inset -7px 0 0 0 #000000')
+      expect(s.boxShadow).toContain('inset 4px 0 0 0 var(--color-ring-primary)')
+      expect(s.boxShadow).toContain('inset 7px 0 0 0 var(--color-ring-secondary)')
+      expect(s.boxShadow).toContain('inset -4px 0 0 0 var(--color-ring-primary)')
+      expect(s.boxShadow).toContain('inset -7px 0 0 0 var(--color-ring-secondary)')
       expect(s.boxShadow).not.toContain('inset 0 4px 0 0') // no row band
     })
 
     it('gives the selected cell no row/col band (it already has its own ring)', () => {
       const s = style({ ...baseCell, isSelected: true }, 4, 7, 4, 7)
-      expect(s.boxShadow).toBe('inset 0 0 0 3px #ffffff, inset 0 0 0 6px #000000')
+      expect(s.boxShadow).toBe(
+        'inset 0 0 0 3px var(--color-ring-primary), inset 0 0 0 6px var(--color-ring-secondary)',
+      )
     })
 
     it('has no box-shadow at all for an ordinary cell outside the selection', () => {
