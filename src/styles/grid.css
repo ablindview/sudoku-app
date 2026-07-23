@@ -21,9 +21,11 @@
   justify-content: center;
   /* --digit-bg/--digit-ink are set inline per cell (cellStyle.ts) from the
      cell's value; empty cells fall back to the normal surface/text pair.
-     Box-outline edges, the selected ring, and the same-digit highlight ring
-     are also computed there as one combined inline box-shadow — see that
-     file for why they can't be split across separate CSS rules. */
+     The box-outline edge color is also set inline, as a real `border` (not
+     box-shadow) — an inset box-shadow is clipped to the padding box, so it
+     can never visually collide with the border regardless of what else is
+     going on. The selected ring / same-digit highlight ring / focused
+     row-column band are the inline box-shadow, computed there too. */
   background: var(--digit-bg, var(--color-surface));
   color: var(--digit-ink, var(--color-text));
   font-size: calc(var(--cell-size) * 0.42);
@@ -98,6 +100,8 @@
   width: var(--cell-size);
   height: var(--cell-size);
   padding: 0;
+  /* border and background/color below are fallbacks — cellStyle.ts always
+     sets these inline per cell, including the border on non-edge sides. */
   border: 1px solid var(--color-border);
   background: var(--digit-bg, var(--color-surface));
   color: var(--digit-ink, var(--color-text));

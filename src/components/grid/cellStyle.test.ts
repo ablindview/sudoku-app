@@ -16,58 +16,90 @@ const baseCell: CellDisplayState = {
   isDigitHighlighted: false,
 }
 
+// (row, col, selectedRow, selectedCol, nonEdgeColor='transparent')
+const style = (cell: CellDisplayState, row: number, col: number, selRow: number | null = null, selCol: number | null = null) =>
+  buildCellInlineStyle(cell, row, col, selRow, selCol, 'transparent')
+
 describe('buildCellInlineStyle', () => {
   it('sets digit color variables only when the cell has a value', () => {
-    const empty = buildCellInlineStyle({ ...baseCell }, 0, 0)
+    const empty = style({ ...baseCell }, 0, 0)
     expect(empty).not.toHaveProperty('--digit-bg')
 
-    const filled = buildCellInlineStyle({ ...baseCell, value: 5 }, 0, 0)
+    const filled = style({ ...baseCell, value: 5 }, 0, 0)
     expect(filled).toMatchObject({ '--digit-bg': 'var(--identity-5)', '--digit-ink': 'var(--identity-5-ink)' })
   })
 
   it('always sets a box-color variable keyed by 1-indexed box', () => {
-    const style = buildCellInlineStyle({ ...baseCell, box: 4 }, 0, 0)
-    expect(style).toMatchObject({ '--box-color': 'var(--box-outline-5)' })
+    const s = style({ ...baseCell, box: 4 }, 0, 0)
+    expect(s).toMatchObject({ '--box-color': 'var(--box-outline-5)' })
   })
 
-  it('adds a box-shadow edge only on the sides that are true box boundaries', () => {
-    const topLeft = buildCellInlineStyle(baseCell, 0, 0) // row%3=0, col%3=0: top+left
-    expect(topLeft.boxShadow).toContain('inset 0 3px 0 0 var(--box-color)')
-    expect(topLeft.boxShadow).toContain('inset 3px 0 0 0 var(--box-color)')
-    expect(topLeft.boxShadow).not.toContain('-3px 0 0 0') // no right edge
-    expect(topLeft.boxShadow).not.toContain('0 -3px 0 0') // no bottom edge
+  describe('box-edge border', () => {
+    it('colors only the true box-boundary sides, leaving the rest at the given non-edge color', () => {
+      const topLeft = style(baseCell, 0, 0) // row%3=0, col%3=0: top+left are box edges
+      expect(topLeft.borderTopColor).toBe('var(--box-color)')
+      expect(topLeft.borderLeftColor).toBe('var(--box-color)')
+      expect(topLeft.borderBottomColor).toBe('transparent')
+      expect(topLeft.borderRightColor).toBe('transparent')
+    })
 
-    const center = buildCellInlineStyle(baseCell, 1, 1) // interior of its box: no edges
-    expect(center.boxShadow).toBeUndefined()
+    it('has no box edges on a box-interior cell', () => {
+      const center = style(baseCell, 1, 1)
+      expect(center.borderTopColor).toBe('transparent')
+      expect(center.borderRightColor).toBe('transparent')
+      expect(center.borderBottomColor).toBe('transparent')
+      expect(center.borderLeftColor).toBe('transparent')
+    })
 
-    const bottomRight = buildCellInlineStyle(baseCell, 2, 2)
-    expect(bottomRight.boxShadow).toContain('inset 0 -3px 0 0 var(--box-color)')
-    expect(bottomRight.boxShadow).toContain('inset -3px 0 0 0 var(--box-color)')
+    it('colors bottom+right edges for a box bottom-right corner cell', () => {
+      const bottomRight = style(baseCell, 2, 2)
+      expect(bottomRight.borderBottomColor).toBe('var(--box-color)')
+      expect(bottomRight.borderRightColor).toBe('var(--box-color)')
+    })
+
+    it('uses the caller-supplied non-edge color (Mode B passes a visible gray, not transparent)', () => {
+      const s = buildCellInlineStyle(baseCell, 1, 1, null, null, 'var(--color-border)')
+      expect(s.borderTopColor).toBe('var(--color-border)')
+    })
   })
 
-  it('adds a selected ring independent of box edges', () => {
-    const style = buildCellInlineStyle({ ...baseCell, isSelected: true }, 1, 1)
-    expect(style.boxShadow).toBe('inset 0 0 0 3px var(--color-focus-ring)')
-  })
+  describe('box-shadow rings (selected / digit-highlight / row-col band)', () => {
+    it('gives the selected cell a white-then-black double ring on all four sides', () => {
+      const s = style({ ...baseCell, isSelected: true }, 4, 4)
+      expect(s.boxShadow).toBe('inset 0 0 0 2px #ffffff, inset 0 0 0 4px #000000')
+    })
 
-  it('adds a digit-highlight ring using the digit ink color', () => {
-    const style = buildCellInlineStyle({ ...baseCell, value: 7, isDigitHighlighted: true }, 1, 1)
-    expect(style.boxShadow).toBe('inset 0 0 0 3px var(--digit-ink, var(--color-text))')
-  })
+    it('gives a same-digit-highlighted cell a ring using its own ink color', () => {
+      const s = style({ ...baseCell, value: 7, isDigitHighlighted: true }, 4, 4)
+      expect(s.boxShadow).toBe('inset 0 0 0 3px var(--digit-ink, var(--color-text))')
+    })
 
-  it('composes all applicable shadow layers together rather than overwriting', () => {
-    const style = buildCellInlineStyle(
-      { ...baseCell, value: 3, isSelected: true, isDigitHighlighted: true },
-      0,
-      0, // top-left corner: also on both box edges
-    )
-    // Naive split(', ') would also split inside `var(--digit-ink, var(--color-text))`'s
-    // fallback argument, so count top-level layers by their "inset" keyword instead.
-    const layerCount = style.boxShadow?.match(/inset/g)?.length ?? 0
-    expect(layerCount).toBe(4) // top edge, left edge, selected ring, highlight ring
-    expect(style.boxShadow).toContain('inset 0 3px 0 0 var(--box-color)')
-    expect(style.boxShadow).toContain('inset 3px 0 0 0 var(--box-color)')
-    expect(style.boxShadow).toContain('inset 0 0 0 3px var(--color-focus-ring)')
-    expect(style.boxShadow).toContain('inset 0 0 0 3px var(--digit-ink, var(--color-text))')
+    it('gives a non-selected cell in the focused row a top+bottom double-line band', () => {
+      const s = style(baseCell, 4, 2, 4, 7) // row 4 matches selectedRow, col 2 != selectedCol 7
+      expect(s.boxShadow).toContain('inset 0 3px 0 0 #ffffff')
+      expect(s.boxShadow).toContain('inset 0 4px 0 0 #000000')
+      expect(s.boxShadow).toContain('inset 0 -3px 0 0 #ffffff')
+      expect(s.boxShadow).toContain('inset 0 -4px 0 0 #000000')
+      expect(s.boxShadow).not.toContain('inset 3px 0 0 0') // no column band
+    })
+
+    it('gives a non-selected cell in the focused column a left+right double-line band', () => {
+      const s = style(baseCell, 1, 7, 4, 7) // col 7 matches selectedCol, row 1 != selectedRow 4
+      expect(s.boxShadow).toContain('inset 3px 0 0 0 #ffffff')
+      expect(s.boxShadow).toContain('inset 4px 0 0 0 #000000')
+      expect(s.boxShadow).toContain('inset -3px 0 0 0 #ffffff')
+      expect(s.boxShadow).toContain('inset -4px 0 0 0 #000000')
+      expect(s.boxShadow).not.toContain('inset 0 3px 0 0') // no row band
+    })
+
+    it('gives the selected cell no row/col band (it already has its own ring)', () => {
+      const s = style({ ...baseCell, isSelected: true }, 4, 7, 4, 7)
+      expect(s.boxShadow).toBe('inset 0 0 0 2px #ffffff, inset 0 0 0 4px #000000')
+    })
+
+    it('has no box-shadow at all for an ordinary cell outside the selection', () => {
+      const s = style(baseCell, 4, 4, 0, 0)
+      expect(s.boxShadow).toBeUndefined()
+    })
   })
 })

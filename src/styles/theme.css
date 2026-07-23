@@ -50,9 +50,14 @@
   --identity-9-ink: #1a1a1a;
   --box-outline-1: var(--identity-1);
   --box-outline-2: var(--identity-2);
-  --box-outline-3: var(--identity-3);
-  --box-outline-4: var(--identity-4);
-  --box-outline-5: var(--identity-5);
+  /* box-outline-3/4/5 are NOT the same hex as --identity-3/4/5: as pure
+     identity colors they read at 2.2-2.8:1 against a white surface (below
+     the 3:1 non-text contrast minimum for a border). Same hue, darkened
+     just enough to clear 3:1 as a border specifically — the digit-fill use
+     of --identity-N is unaffected. */
+  --box-outline-3: #19a06f;
+  --box-outline-4: #bd8000;
+  --box-outline-5: #e35f91;
   --box-outline-6: var(--identity-6);
   --box-outline-7: var(--identity-7);
   --box-outline-8: var(--identity-8);
@@ -99,7 +104,10 @@
   --box-outline-3: var(--identity-3);
   --box-outline-4: var(--identity-4);
   --box-outline-5: var(--identity-5);
-  --box-outline-6: var(--identity-6);
+  /* Same reasoning as the light theme's box-outline-3/4/5 above: pure
+     --identity-6 (dark green) reads at 2.94:1 against the dark surface as a
+     border. Same hue, lightened just enough to clear 3:1. */
+  --box-outline-6: #008800;
   --box-outline-7: var(--identity-7);
   --box-outline-8: var(--identity-8);
   --box-outline-9: var(--identity-9);

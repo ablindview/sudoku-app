@@ -1,5 +1,5 @@
 import { useRef, type ChangeEvent, type KeyboardEvent } from 'react'
-import { toIndex } from '../../engine/board'
+import { toIndex, toRowCol } from '../../engine/board'
 import { useAnnouncer } from '../../a11y/useAnnouncer'
 import { useGameDispatch, useGameState } from '../../game/useGame'
 import { useSettings } from '../../settings/useSettings'
@@ -82,6 +82,8 @@ export function GridInputTable() {
   // gets a highlight ring, so selecting a placed number (click, tap, or
   // keyboard nav) highlights all its other instances across the board.
   const highlightedValue = state.selectedIndex !== null ? state.values[state.selectedIndex] : 0
+  const selectedRow = state.selectedIndex !== null ? toRowCol(state.selectedIndex).row : null
+  const selectedCol = state.selectedIndex !== null ? toRowCol(state.selectedIndex).col : null
 
   return (
     <table className="sudoku-input-grid">
@@ -108,7 +110,7 @@ export function GridInputTable() {
                   data-row={row}
                   data-col={col}
                   className={classNames.join(' ')}
-                  style={buildCellInlineStyle(cell, row, col)}
+                  style={buildCellInlineStyle(cell, row, col, selectedRow, selectedCol, 'var(--color-border)')}
                 >
                   <input
                     ref={(el) => {
