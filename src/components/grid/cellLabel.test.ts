@@ -56,6 +56,18 @@ describe('buildCellState', () => {
     expect(buildCellState(state, 42).isSelected).toBe(true)
     expect(buildCellState(state, 41).isSelected).toBe(false)
   })
+
+  it('reflects completed-digit state only when passed and only for matching cells', () => {
+    const state = loaded()
+    const withComplete = buildCellState(state, 0, true, 0, new Set<Digit>([5]))
+    expect(withComplete.isDigitComplete).toBe(true) // index 0 holds a 5
+
+    const withoutComplete = buildCellState(state, 0, true, 0, new Set<Digit>([9]))
+    expect(withoutComplete.isDigitComplete).toBe(false)
+
+    const defaulted = buildCellState(state, 0)
+    expect(defaulted.isDigitComplete).toBe(false)
+  })
 })
 
 describe('gridCellLabel (Mode A)', () => {
@@ -78,6 +90,12 @@ describe('gridCellLabel (Mode A)', () => {
   it('includes conflict state', () => {
     const conflicted = gameReducer(loaded(), { type: 'SET_VALUE', index: 1, value: 5 })
     expect(gridCellLabel(buildCellState(conflicted, 1))).toBe('Row 1, column 2, value 5, conflict')
+  })
+
+  it('appends "digit complete" alongside other state, not instead of it', () => {
+    const state = loaded() // index 0 is a given 5
+    const cell = buildCellState(state, 0, true, 0, new Set<Digit>([5]))
+    expect(gridCellLabel(cell)).toBe('Row 1, column 1, value 5, given, digit complete')
   })
 })
 

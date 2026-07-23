@@ -1,4 +1,4 @@
-import { useEffect, useRef, type KeyboardEvent } from 'react'
+import { useEffect, useMemo, useRef, type KeyboardEvent } from 'react'
 import { toIndex, toRowCol } from '../../engine/board'
 import { useAnnouncer } from '../../a11y/useAnnouncer'
 import { useGameDispatch, useGameState } from '../../game/useGame'
@@ -6,6 +6,7 @@ import { useSettings } from '../../settings/useSettings'
 import { CellVisual } from './CellVisual'
 import { buildCellState, gridCellLabel } from './cellLabel'
 import { buildCellInlineStyle } from './cellStyle'
+import { computeCompletedDigits } from './completedDigits'
 import { computeNextIndex, isClearKey, NAV_KEYS, parseDigitKey } from './gridKeyboard'
 
 const ROWS = Array.from({ length: 9 }, (_, i) => i)
@@ -77,6 +78,7 @@ export function GridA11yGrid() {
   const highlightedValue = state.selectedIndex !== null ? state.values[state.selectedIndex] : 0
   const selectedRow = state.selectedIndex !== null ? toRowCol(state.selectedIndex).row : null
   const selectedCol = state.selectedIndex !== null ? toRowCol(state.selectedIndex).col : null
+  const completedDigits = useMemo(() => computeCompletedDigits(state), [state])
 
   return (
     <div className="sudoku-grid" role="grid" aria-label="Sudoku puzzle, 9 by 9" aria-rowcount={9} aria-colcount={9}>
@@ -84,7 +86,7 @@ export function GridA11yGrid() {
         <div key={row} role="row" aria-rowindex={row + 1} style={{ display: 'contents' }}>
           {COLS.map((col) => {
             const index = toIndex(row, col)
-            const cell = buildCellState(state, index, settings.autoCheckConflicts, highlightedValue)
+            const cell = buildCellState(state, index, settings.autoCheckConflicts, highlightedValue, completedDigits)
 
             const classNames = ['sudoku-cell']
             if (cell.isGiven) classNames.push('sudoku-cell--given')

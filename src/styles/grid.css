@@ -28,7 +28,7 @@
      row-column band are the inline box-shadow, computed there too. */
   background: var(--digit-bg, var(--color-surface));
   color: var(--digit-ink, var(--color-text));
-  font-size: calc(var(--cell-size) * 0.42);
+  font-size: calc(var(--cell-size) * 0.58);
   line-height: 1;
   border: 0;
   padding: 0;
@@ -115,7 +115,7 @@
   background: transparent;
   color: inherit;
   text-align: center;
-  font-size: calc(var(--cell-size) * 0.42);
+  font-size: calc(var(--cell-size) * 0.58);
   font-weight: inherit;
   font-style: inherit;
 }

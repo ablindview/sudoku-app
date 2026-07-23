@@ -22,39 +22,40 @@
   --color-selected-text: #1a1a1a;
   --color-focus-ring: #0b57d0;
 
-  /* Per-digit identity colors (1-9): validated categorical palette (adjacent
-     CVD ΔE and normal-vision-floor checks pass; see project notes). Cell
-     background = the digit's color; ink is chosen per-swatch so text on top
-     clears 4.5:1. Box-outline colors reuse the same 9 hues, keyed by 3x3 box
-     index instead of digit value, so "which box am I in" gets its own
-     independent visual channel. Neither channel is the sole way to identify
-     a digit or a box — the numeral glyph and the aria-label position are
-     always present regardless of color perception. */
-  --identity-1: #2976d2;
+  /* Per-digit identity colors (1-9): validated categorical palette, boosted
+     to near-maximum saturation (re-validated: lightness band, chroma floor,
+     CVD separation, and normal-vision floor all still pass) so they read as
+     bold, saturated fills rather than muted tints — important for low-vision
+     users. Cell background = the digit's color; ink is chosen per-swatch so
+     text on top clears 4.5:1. Box-outline colors reuse the same 9 hues,
+     keyed by 3x3 box index instead of digit value, so "which box am I in"
+     gets its own independent visual channel. Neither channel is the sole way
+     to identify a digit or a box — the numeral glyph and the aria-label
+     position are always present regardless of color perception. */
+  --identity-1: #066eeb;
   --identity-1-ink: #ffffff;
-  --identity-2: #eb6834;
+  --identity-2: #f96226;
   --identity-2-ink: #1a1a1a;
-  --identity-3: #1baf7a;
+  --identity-3: #05c580;
   --identity-3-ink: #1a1a1a;
   --identity-4: #eda100;
   --identity-4-ink: #1a1a1a;
-  --identity-5: #e87ba4;
+  --identity-5: #fb689f;
   --identity-5-ink: #1a1a1a;
   --identity-6: #008300;
   --identity-6-ink: #ffffff;
-  --identity-7: #4a3aa7;
+  --identity-7: #2907f4;
   --identity-7-ink: #ffffff;
-  --identity-8: #e44d4c;
+  --identity-8: #fa3736;
   --identity-8-ink: #1a1a1a;
   --identity-9: #0097ab;
   --identity-9-ink: #1a1a1a;
   --box-outline-1: var(--identity-1);
   --box-outline-2: var(--identity-2);
   /* box-outline-3/4/5 are NOT the same hex as --identity-3/4/5: as pure
-     identity colors they read at 2.2-2.8:1 against a white surface (below
-     the 3:1 non-text contrast minimum for a border). Same hue, darkened
-     just enough to clear 3:1 as a border specifically — the digit-fill use
-     of --identity-N is unaffected. */
+     identity colors they read below the 3:1 non-text contrast minimum
+     against a white surface. Same hue, darkened just enough to clear 3:1 as
+     a border specifically — the digit-fill use of --identity-N is unaffected. */
   --box-outline-3: #19a06f;
   --box-outline-4: #bd8000;
   --box-outline-5: #e35f91;
@@ -81,23 +82,23 @@
   --color-selected-text: #f1f1f1;
   --color-focus-ring: #7fb2ff;
 
-  --identity-1: #3987e5;
+  --identity-1: #2585f9;
   --identity-1-ink: #1a1a1a;
-  --identity-2: #da5c2a;
+  --identity-2: #f94f0b;
   --identity-2-ink: #1a1a1a;
-  --identity-3: #199e70;
+  --identity-3: #04a166;
   --identity-3-ink: #1a1a1a;
   --identity-4: #c98500;
   --identity-4-ink: #1a1a1a;
-  --identity-5: #d65584;
+  --identity-5: #fa317a;
   --identity-5-ink: #1a1a1a;
   --identity-6: #007e00;
   --identity-6-ink: #ffffff;
-  --identity-7: #9085e9;
+  --identity-7: #8273fb;
   --identity-7-ink: #1a1a1a;
-  --identity-8: #e66767;
+  --identity-8: #fb4343;
   --identity-8-ink: #1a1a1a;
-  --identity-9: #1a99ab;
+  --identity-9: #059cb1;
   --identity-9-ink: #1a1a1a;
   --box-outline-1: var(--identity-1);
   --box-outline-2: var(--identity-2);
@@ -105,7 +106,7 @@
   --box-outline-4: var(--identity-4);
   --box-outline-5: var(--identity-5);
   /* Same reasoning as the light theme's box-outline-3/4/5 above: pure
-     --identity-6 (dark green) reads at 2.94:1 against the dark surface as a
+     --identity-6 (dark green) reads below 3:1 against the dark surface as a
      border. Same hue, lightened just enough to clear 3:1. */
   --box-outline-6: #008800;
   --box-outline-7: var(--identity-7);

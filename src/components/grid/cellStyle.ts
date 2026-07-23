@@ -36,13 +36,24 @@ export function buildCellInlineStyle(
   const style: Record<string, string> = {}
 
   if (cell.value !== 0) {
-    style['--digit-bg'] = `var(--identity-${cell.value})`
-    style['--digit-ink'] = `var(--identity-${cell.value}-ink)`
+    // Once a digit has all 9 of its solution cells correctly filled, there's
+    // nowhere left to place another one — swap which of the pair is the
+    // background and which is the text, so completed digits read as clearly
+    // different at a glance. Contrast ratio is symmetric (contrast(A,B) ==
+    // contrast(B,A)), so this is guaranteed to stay exactly as readable as
+    // the normal look, for every digit, with no separate contrast check needed.
+    if (cell.isDigitComplete) {
+      style['--digit-bg'] = `var(--identity-${cell.value}-ink)`
+      style['--digit-ink'] = `var(--identity-${cell.value})`
+    } else {
+      style['--digit-bg'] = `var(--identity-${cell.value})`
+      style['--digit-ink'] = `var(--identity-${cell.value}-ink)`
+    }
   }
   style['--box-color'] = `var(--box-outline-${cell.box + 1})`
 
   style.borderStyle = 'solid'
-  style.borderWidth = '2px'
+  style.borderWidth = '3px'
   style.borderTopColor = row % 3 === 0 ? 'var(--box-color)' : nonEdgeBorderColor
   style.borderBottomColor = row % 3 === 2 ? 'var(--box-color)' : nonEdgeBorderColor
   style.borderLeftColor = col % 3 === 0 ? 'var(--box-color)' : nonEdgeBorderColor
@@ -50,19 +61,19 @@ export function buildCellInlineStyle(
 
   const shadows: string[] = []
   if (cell.isSelected) {
-    shadows.push('inset 0 0 0 2px #ffffff', 'inset 0 0 0 4px #000000')
+    shadows.push('inset 0 0 0 3px #ffffff', 'inset 0 0 0 6px #000000')
   } else if (cell.isDigitHighlighted) {
-    shadows.push('inset 0 0 0 3px var(--digit-ink, var(--color-text))')
+    shadows.push('inset 0 0 0 4px var(--digit-ink, var(--color-text))')
   } else {
     const inSelectedRow = selectedRow !== null && row === selectedRow
     const inSelectedCol = selectedCol !== null && col === selectedCol
     if (inSelectedRow) {
-      shadows.push('inset 0 3px 0 0 #ffffff', 'inset 0 4px 0 0 #000000')
-      shadows.push('inset 0 -3px 0 0 #ffffff', 'inset 0 -4px 0 0 #000000')
+      shadows.push('inset 0 4px 0 0 #ffffff', 'inset 0 7px 0 0 #000000')
+      shadows.push('inset 0 -4px 0 0 #ffffff', 'inset 0 -7px 0 0 #000000')
     }
     if (inSelectedCol) {
-      shadows.push('inset 3px 0 0 0 #ffffff', 'inset 4px 0 0 0 #000000')
-      shadows.push('inset -3px 0 0 0 #ffffff', 'inset -4px 0 0 0 #000000')
+      shadows.push('inset 4px 0 0 0 #ffffff', 'inset 7px 0 0 0 #000000')
+      shadows.push('inset -4px 0 0 0 #ffffff', 'inset -7px 0 0 0 #000000')
     }
   }
 

@@ -1,4 +1,4 @@
-import { useRef, type ChangeEvent, type KeyboardEvent } from 'react'
+import { useMemo, useRef, type ChangeEvent, type KeyboardEvent } from 'react'
 import { toIndex, toRowCol } from '../../engine/board'
 import { useAnnouncer } from '../../a11y/useAnnouncer'
 import { useGameDispatch, useGameState } from '../../game/useGame'
@@ -6,6 +6,7 @@ import { useSettings } from '../../settings/useSettings'
 import { NotesGrid } from './CellVisual'
 import { buildCellState, inputCellLabel } from './cellLabel'
 import { buildCellInlineStyle } from './cellStyle'
+import { computeCompletedDigits } from './completedDigits'
 import { computeNextIndex, NAV_KEYS, parseDigitKey } from './gridKeyboard'
 
 const ROWS = Array.from({ length: 9 }, (_, i) => i)
@@ -84,6 +85,7 @@ export function GridInputTable() {
   const highlightedValue = state.selectedIndex !== null ? state.values[state.selectedIndex] : 0
   const selectedRow = state.selectedIndex !== null ? toRowCol(state.selectedIndex).row : null
   const selectedCol = state.selectedIndex !== null ? toRowCol(state.selectedIndex).col : null
+  const completedDigits = useMemo(() => computeCompletedDigits(state), [state])
 
   return (
     <table className="sudoku-input-grid">
@@ -96,7 +98,7 @@ export function GridInputTable() {
           <tr key={row}>
             {COLS.map((col) => {
               const index = toIndex(row, col)
-              const cell = buildCellState(state, index, settings.autoCheckConflicts, highlightedValue)
+              const cell = buildCellState(state, index, settings.autoCheckConflicts, highlightedValue, completedDigits)
 
               const classNames = ['sudoku-input-cell']
               if (cell.isGiven) classNames.push('sudoku-cell--given')

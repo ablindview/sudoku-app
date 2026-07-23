@@ -14,6 +14,7 @@ const baseCell: CellDisplayState = {
   hasConflict: false,
   isSelected: false,
   isDigitHighlighted: false,
+  isDigitComplete: false,
 }
 
 // (row, col, selectedRow, selectedCol, nonEdgeColor='transparent')
@@ -27,6 +28,14 @@ describe('buildCellInlineStyle', () => {
 
     const filled = style({ ...baseCell, value: 5 }, 0, 0)
     expect(filled).toMatchObject({ '--digit-bg': 'var(--identity-5)', '--digit-ink': 'var(--identity-5-ink)' })
+  })
+
+  it('swaps background and ink for a completed digit, guaranteeing the same contrast either way', () => {
+    const normal = style({ ...baseCell, value: 5 }, 0, 0)
+    expect(normal).toMatchObject({ '--digit-bg': 'var(--identity-5)', '--digit-ink': 'var(--identity-5-ink)' })
+
+    const complete = style({ ...baseCell, value: 5, isDigitComplete: true }, 0, 0)
+    expect(complete).toMatchObject({ '--digit-bg': 'var(--identity-5-ink)', '--digit-ink': 'var(--identity-5)' })
   })
 
   it('always sets a box-color variable keyed by 1-indexed box', () => {
@@ -66,35 +75,35 @@ describe('buildCellInlineStyle', () => {
   describe('box-shadow rings (selected / digit-highlight / row-col band)', () => {
     it('gives the selected cell a white-then-black double ring on all four sides', () => {
       const s = style({ ...baseCell, isSelected: true }, 4, 4)
-      expect(s.boxShadow).toBe('inset 0 0 0 2px #ffffff, inset 0 0 0 4px #000000')
+      expect(s.boxShadow).toBe('inset 0 0 0 3px #ffffff, inset 0 0 0 6px #000000')
     })
 
     it('gives a same-digit-highlighted cell a ring using its own ink color', () => {
       const s = style({ ...baseCell, value: 7, isDigitHighlighted: true }, 4, 4)
-      expect(s.boxShadow).toBe('inset 0 0 0 3px var(--digit-ink, var(--color-text))')
+      expect(s.boxShadow).toBe('inset 0 0 0 4px var(--digit-ink, var(--color-text))')
     })
 
     it('gives a non-selected cell in the focused row a top+bottom double-line band', () => {
       const s = style(baseCell, 4, 2, 4, 7) // row 4 matches selectedRow, col 2 != selectedCol 7
-      expect(s.boxShadow).toContain('inset 0 3px 0 0 #ffffff')
-      expect(s.boxShadow).toContain('inset 0 4px 0 0 #000000')
-      expect(s.boxShadow).toContain('inset 0 -3px 0 0 #ffffff')
-      expect(s.boxShadow).toContain('inset 0 -4px 0 0 #000000')
-      expect(s.boxShadow).not.toContain('inset 3px 0 0 0') // no column band
+      expect(s.boxShadow).toContain('inset 0 4px 0 0 #ffffff')
+      expect(s.boxShadow).toContain('inset 0 7px 0 0 #000000')
+      expect(s.boxShadow).toContain('inset 0 -4px 0 0 #ffffff')
+      expect(s.boxShadow).toContain('inset 0 -7px 0 0 #000000')
+      expect(s.boxShadow).not.toContain('inset 4px 0 0 0') // no column band
     })
 
     it('gives a non-selected cell in the focused column a left+right double-line band', () => {
       const s = style(baseCell, 1, 7, 4, 7) // col 7 matches selectedCol, row 1 != selectedRow 4
-      expect(s.boxShadow).toContain('inset 3px 0 0 0 #ffffff')
-      expect(s.boxShadow).toContain('inset 4px 0 0 0 #000000')
-      expect(s.boxShadow).toContain('inset -3px 0 0 0 #ffffff')
-      expect(s.boxShadow).toContain('inset -4px 0 0 0 #000000')
-      expect(s.boxShadow).not.toContain('inset 0 3px 0 0') // no row band
+      expect(s.boxShadow).toContain('inset 4px 0 0 0 #ffffff')
+      expect(s.boxShadow).toContain('inset 7px 0 0 0 #000000')
+      expect(s.boxShadow).toContain('inset -4px 0 0 0 #ffffff')
+      expect(s.boxShadow).toContain('inset -7px 0 0 0 #000000')
+      expect(s.boxShadow).not.toContain('inset 0 4px 0 0') // no row band
     })
 
     it('gives the selected cell no row/col band (it already has its own ring)', () => {
       const s = style({ ...baseCell, isSelected: true }, 4, 7, 4, 7)
-      expect(s.boxShadow).toBe('inset 0 0 0 2px #ffffff, inset 0 0 0 4px #000000')
+      expect(s.boxShadow).toBe('inset 0 0 0 3px #ffffff, inset 0 0 0 6px #000000')
     })
 
     it('has no box-shadow at all for an ordinary cell outside the selection', () => {

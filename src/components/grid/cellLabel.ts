@@ -14,6 +14,7 @@ export interface CellDisplayState {
   hasConflict: boolean
   isSelected: boolean
   isDigitHighlighted: boolean
+  isDigitComplete: boolean
 }
 
 /**
@@ -25,12 +26,18 @@ export interface CellDisplayState {
  * or nothing selected). Any other filled cell sharing that value is flagged
  * isDigitHighlighted — selecting a cell (by click, tap, or keyboard nav)
  * highlights every other instance of its digit across the board.
+ *
+ * `completedDigits` (see completedDigits.ts) marks digits that have all 9 of
+ * their solution cells correctly filled — once a digit is "used up" there's
+ * nowhere left to place another one, so those cells get a visibly different
+ * look.
  */
 export function buildCellState(
   state: GameState,
   index: number,
   revealConflicts = true,
   highlightedValue: CellValue = 0,
+  completedDigits: ReadonlySet<Digit> = new Set(),
 ): CellDisplayState {
   const { row, col } = toRowCol(index)
   const value = state.values[index]
@@ -46,15 +53,18 @@ export function buildCellState(
     hasConflict: revealConflicts && state.conflicts.has(index),
     isSelected: state.selectedIndex === index,
     isDigitHighlighted: highlightedValue !== 0 && value === highlightedValue,
+    isDigitComplete: value !== 0 && completedDigits.has(value),
   }
 }
 
 function stateSuffix(cell: CellDisplayState): string {
-  if (cell.isGiven) return ', given'
-  if (cell.hasConflict) return ', conflict'
-  if (cell.isHinted) return ', hint'
-  if (cell.value === 0 && cell.notesDigits.length > 0) return `, notes ${cell.notesDigits.join(', ')}`
-  return ''
+  const parts: string[] = []
+  if (cell.isGiven) parts.push('given')
+  else if (cell.hasConflict) parts.push('conflict')
+  else if (cell.isHinted) parts.push('hint')
+  else if (cell.value === 0 && cell.notesDigits.length > 0) parts.push(`notes ${cell.notesDigits.join(', ')}`)
+  if (cell.isDigitComplete) parts.push('digit complete')
+  return parts.length > 0 ? `, ${parts.join(', ')}` : ''
 }
 
 /** Mode A: the cell is a div with no native "value", so the label must carry
