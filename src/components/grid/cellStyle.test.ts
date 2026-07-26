@@ -90,22 +90,18 @@ describe('buildCellInlineStyle', () => {
       )
     })
 
-    it('gives a non-selected cell in the focused row a top+bottom double-line band', () => {
+    it('gives a non-selected cell in the focused row a spread-based band ring (same technique as the selection ring)', () => {
       const s = style(baseCell, 4, 2, 4, 7) // row 4 matches selectedRow, col 2 != selectedCol 7
-      expect(s.boxShadow).toContain('inset 0 4px 0 0 var(--color-band-primary)')
-      expect(s.boxShadow).toContain('inset 0 7px 0 0 var(--color-band-secondary)')
-      expect(s.boxShadow).toContain('inset 0 -4px 0 0 var(--color-band-primary)')
-      expect(s.boxShadow).toContain('inset 0 -7px 0 0 var(--color-band-secondary)')
-      expect(s.boxShadow).not.toContain('inset 4px 0 0 0') // no column band
+      expect(s.boxShadow).toBe(
+        'inset 0 0 0 3px var(--color-band-primary), inset 0 0 0 5px var(--color-band-secondary)',
+      )
     })
 
-    it('gives a non-selected cell in the focused column a left+right double-line band', () => {
+    it('gives a non-selected cell in the focused column the same spread-based band ring', () => {
       const s = style(baseCell, 1, 7, 4, 7) // col 7 matches selectedCol, row 1 != selectedRow 4
-      expect(s.boxShadow).toContain('inset 4px 0 0 0 var(--color-band-primary)')
-      expect(s.boxShadow).toContain('inset 7px 0 0 0 var(--color-band-secondary)')
-      expect(s.boxShadow).toContain('inset -4px 0 0 0 var(--color-band-primary)')
-      expect(s.boxShadow).toContain('inset -7px 0 0 0 var(--color-band-secondary)')
-      expect(s.boxShadow).not.toContain('inset 0 4px 0 0') // no row band
+      expect(s.boxShadow).toBe(
+        'inset 0 0 0 3px var(--color-band-primary), inset 0 0 0 5px var(--color-band-secondary)',
+      )
     })
 
     it('gives the selected cell no row/col band (it already has its own ring)', () => {
