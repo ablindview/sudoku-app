@@ -70,22 +70,6 @@
   pointer-events: none;
 }
 
-/* Row/column band: a plain border on a ::before overlay, not box-shadow —
-   see the doc comment in cellStyle.ts for why. --band-color is set inline
-   per cell only when it's in the focused row/column; otherwise it falls
-   back to transparent, so this rule can stay unconditional instead of
-   needing its own modifier class. Uses ::before (not ::after) because
-   ::after is already the conflict-dashed-border layer above, and a cell can
-   be both in-conflict and in the focused row/column at once. */
-.sudoku-cell::before,
-.sudoku-input-cell::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border: 4px solid var(--band-color, transparent);
-  pointer-events: none;
-}
-
 .sudoku-cell-notes {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

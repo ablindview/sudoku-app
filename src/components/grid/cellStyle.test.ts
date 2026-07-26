@@ -95,31 +95,33 @@ describe('buildCellInlineStyle', () => {
       expect(s.boxShadow).toBeUndefined()
     })
 
-    it('has no box-shadow for a cell in the focused row/column either — the band is a border, not a shadow', () => {
+    it('has no box-shadow for a cell in the focused row/column either — the band is an outline, not a shadow', () => {
       const s = style(baseCell, 4, 2, 4, 7) // row 4 matches selectedRow
       expect(s.boxShadow).toBeUndefined()
     })
   })
 
-  describe('row/column band (--band-color custom property, consumed by a border in grid.css)', () => {
-    it('sets --band-color for a non-selected cell in the focused row', () => {
+  describe('row/column band (inline outline, not box-shadow or a pseudo-element)', () => {
+    const bandOutline = { outlineStyle: 'solid', outlineWidth: '4px', outlineOffset: '-4px' }
+
+    it('outlines a non-selected cell in the focused row with the theme default color', () => {
       const s = style(baseCell, 4, 2, 4, 7) // row 4 matches selectedRow, col 2 != selectedCol 7
-      expect(s).toMatchObject({ '--band-color': 'var(--color-band-primary)' })
+      expect(s).toMatchObject({ ...bandOutline, outlineColor: 'var(--color-band-primary)' })
     })
 
-    it('sets --band-color for a non-selected cell in the focused column', () => {
+    it('outlines a non-selected cell in the focused column with the theme default color', () => {
       const s = style(baseCell, 1, 7, 4, 7) // col 7 matches selectedCol, row 1 != selectedRow 4
-      expect(s).toMatchObject({ '--band-color': 'var(--color-band-primary)' })
+      expect(s).toMatchObject({ ...bandOutline, outlineColor: 'var(--color-band-primary)' })
     })
 
-    it('does not set --band-color for the selected cell itself (it already has its own ring)', () => {
+    it('gives the selected cell no band outline (it already has its own ring)', () => {
       const s = style({ ...baseCell, isSelected: true }, 4, 7, 4, 7)
-      expect(s).not.toHaveProperty('--band-color')
+      expect(s.outlineColor).toBeUndefined()
     })
 
-    it('does not set --band-color for a cell outside the focused row/column', () => {
+    it('gives no band outline to a cell outside the focused row/column', () => {
       const s = style(baseCell, 4, 4, 0, 0)
-      expect(s).not.toHaveProperty('--band-color')
+      expect(s.outlineColor).toBeUndefined()
     })
 
     it('uses the cell\'s own digit-ink (not the theme default) when a filled cell is in the band', () => {
@@ -128,12 +130,12 @@ describe('buildCellInlineStyle', () => {
       // ink already chosen for 4.5:1 text contrast against this exact
       // cell's own background sidesteps that without needing a second color.
       const s = style({ ...baseCell, value: 5 }, 4, 2, 4, 7)
-      expect(s).toMatchObject({ '--band-color': 'var(--identity-5-ink)' })
+      expect(s).toMatchObject({ ...bandOutline, outlineColor: 'var(--identity-5-ink)' })
     })
 
     it('uses the swapped ink for a completed digit in the band, matching its own swapped fill', () => {
       const s = style({ ...baseCell, value: 5, isDigitComplete: true }, 4, 2, 4, 7)
-      expect(s).toMatchObject({ '--band-color': 'var(--identity-5)' })
+      expect(s).toMatchObject({ ...bandOutline, outlineColor: 'var(--identity-5)' })
     })
   })
 })

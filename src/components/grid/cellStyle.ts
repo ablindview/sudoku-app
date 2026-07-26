@@ -5,8 +5,7 @@ import type { CellDisplayState } from './cellLabel'
  * Per-cell inline style: the digit's identity color (background/ink), the
  * 3x3 box's outline color, and — for exactly one of "selected" / "same-digit
  * match" / "in the focused row or column" — a ring drawn via `box-shadow`
- * (selected/same-digit) or a `border`-based `::before` overlay (the row/col
- * band; see the `--band-color` custom property and its consumer in grid.css).
+ * (selected/same-digit) or `outline` (the row/col band).
  *
  * Box-edge color uses `border` rather than `box-shadow` deliberately: an
  * inset box-shadow is clipped to the padding box (i.e. it starts just
@@ -17,27 +16,31 @@ import type { CellDisplayState } from './cellLabel'
  * cells; this sidesteps that class of bug entirely instead of re-ordering
  * around it.)
  *
- * The row/column band went through two box-shadow techniques (an
- * offset-based line, then a spread-based ring matching the selection ring's
- * own technique) that were each confirmed working in every environment
- * tested here, yet both were reported as invisible on one user's real iOS
- * Safari — including on cells whose box-shadow value only appears after a
- * *later* re-render (selecting a different cell), as opposed to the
- * initially-selected cell's ring, which that user *does* see. That points at
- * a repaint failure specific to box-shadow updates on that device/browser,
- * not a color/contrast problem. Rather than keep iterating on box-shadow
- * variants, the band now sets a `--band-color` custom property that a plain
- * CSS `border` (via `::before` in grid.css) consumes — the exact mechanism
- * already proven to repaint correctly on that device for the per-box
- * outline colors. This does give up the band's two-tone rescue color (see
- * theme.css) in exchange for something that reliably shows up at all — but
- * only for cells with no value: a filled band cell reuses that cell's own
- * --digit-ink instead of the theme default. --digit-ink is chosen to clear
- * 4.5:1 (text-level contrast) against that exact cell's --digit-bg, which
- * trivially clears the 3:1 non-text minimum a border needs too, for every
- * one of the 9 identity colors — a single fixed band color cannot do that
- * (e.g. black-on-identity-7 is only ~2.4:1 in the light theme), which is
- * exactly why the two-tone approach existed in the first place.
+ * The row/column band went through three techniques that each rendered
+ * correctly in every environment tested here, yet were all reported as
+ * invisible on one user's real iOS Safari: an offset-based box-shadow line,
+ * a spread-based box-shadow ring (matching the selection ring's own,
+ * confirmed-visible technique), and then a `border` set via a `--band-color`
+ * custom property consumed by a `::before` pseudo-element (matching the
+ * box-edge border's own, also confirmed-visible technique). The common
+ * thread in the two box-shadow attempts was updates that only apply on a
+ * *later* re-render; the common thread in the pseudo-element attempt was a
+ * custom property set via *inline* style needing to inherit into generated
+ * content — both known rough edges in different WebKit versions. `outline`
+ * sidesteps both: it's set directly inline on the real cell element (same
+ * mechanism as `border` and `box-shadow` already are, no pseudo-element and
+ * no custom-property indirection involved), referencing theme tokens
+ * defined in an ordinary stylesheet rule rather than inline.
+ *
+ * The band gives up its two-tone rescue color (see theme.css) in exchange
+ * for something that reliably shows up at all — but only for cells with no
+ * value: a filled band cell reuses that cell's own --digit-ink instead of
+ * the theme default. --digit-ink is chosen to clear 4.5:1 (text-level
+ * contrast) against that exact cell's --digit-bg, which trivially clears
+ * the 3:1 non-text minimum an outline needs too, for every one of the 9
+ * identity colors — a single fixed band color cannot do that (e.g.
+ * black-on-identity-7 is only ~2.4:1 in the light theme), which is exactly
+ * why the two-tone approach existed in the first place.
  *
  * Selected / same-digit use --color-ring-primary then --color-ring-secondary
  * at a larger offset. The same-digit ring deliberately does NOT use the
@@ -50,6 +53,16 @@ import type { CellDisplayState } from './cellLabel'
  * selected cell, and a cell can match at most one of "in the selected row" /
  * "in the selected column" since both together would make it the selected
  * cell itself), so these never need to compose.
+ *
+ * HAZARD for future edits: the band's `outline` is the same CSS property
+ * `:focus-visible` uses (see base.css) for the native keyboard focus
+ * ring, and an inline `outline` always wins over that stylesheet rule
+ * regardless of specificity. This is currently safe only because real DOM
+ * focus is pinned to `selectedIndex` (GridA11yGrid's roving tabindex /
+ * GridInputTable's `<input>` focus), which is exactly the cell that takes
+ * the `isSelected` branch above and therefore can never also reach the
+ * band branch. If that exclusion ever changes, a banded cell could
+ * silently swallow a keyboard user's focus indicator.
  */
 export function buildCellInlineStyle(
   cell: CellDisplayState,
@@ -97,7 +110,10 @@ export function buildCellInlineStyle(
     const inSelectedRow = selectedRow !== null && row === selectedRow
     const inSelectedCol = selectedCol !== null && col === selectedCol
     if (inSelectedRow || inSelectedCol) {
-      style['--band-color'] = digitInk ?? 'var(--color-band-primary)'
+      style.outlineStyle = 'solid'
+      style.outlineWidth = '4px'
+      style.outlineOffset = '-4px'
+      style.outlineColor = digitInk ?? 'var(--color-band-primary)'
     }
   }
 
