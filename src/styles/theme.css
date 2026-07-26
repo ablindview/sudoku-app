@@ -37,12 +37,16 @@
   --color-ring-primary: #000000;
   --color-ring-secondary: #ffffff;
 
-  /* The focused row/column band uses its own pair (not --color-ring-*)
-     because it needed to become a SOLID single color in dark mode — see
-     that theme's comment. Kept as the black+white pair here since light
-     mode wasn't reported as hard to see. */
+  /* The focused row/column band is a single solid color (not a --color-ring-*
+     two-tone pair) drawn via a real `border` pseudo-element, not box-shadow —
+     stacked inset box-shadows were found to not repaint reliably on one
+     user's real iOS Safari for cells other than the one selected at initial
+     page load, even after multiple techniques were tried. A plain border is
+     the same mechanism already proven to render correctly on that device
+     (the per-box outline colors use it too), so the band gave up the
+     two-tone contrast guarantee everywhere in exchange for something that
+     reliably shows up at all. */
   --color-band-primary: #000000;
-  --color-band-secondary: #ffffff;
 
   /* Per-digit identity colors (1-9): validated categorical palette, boosted
      to near-maximum saturation (re-validated: lightness band, chroma floor,
@@ -109,15 +113,7 @@
   --color-ring-primary: #ffffff;
   --color-ring-secondary: #000000;
 
-  /* Solid white, not the black+white pair used elsewhere: reported as hard
-     to see in dark mode when the black portion (needed to rescue 3 of the 9
-     identity colors) also meant the visible white sliver was thinner than
-     it looked in every other theme. A single solid color reads unambiguously
-     even if it dips under 3:1 against a couple of identity colors (worst
-     case ~2.7:1, not the ~1.35:1 near-invisibility the black portion had
-     against the plain dark surface). */
   --color-band-primary: #ffffff;
-  --color-band-secondary: #ffffff;
 
   --identity-1: #2585f9;
   --identity-1-ink: #1a1a1a;
@@ -175,7 +171,6 @@
   --color-ring-primary: #000000;
   --color-ring-secondary: #ffffff;
   --color-band-primary: #000000;
-  --color-band-secondary: #000000;
 
   --identity-1: var(--color-surface);
   --identity-1-ink: var(--color-text);
@@ -226,7 +221,6 @@
   --color-ring-primary: #ffffff;
   --color-ring-secondary: #000000;
   --color-band-primary: #ffffff;
-  --color-band-secondary: #ffffff;
 
   --identity-1: var(--color-surface);
   --identity-1-ink: var(--color-text);

@@ -72,7 +72,7 @@ describe('buildCellInlineStyle', () => {
     })
   })
 
-  describe('box-shadow rings (selected / digit-highlight / row-col band)', () => {
+  describe('box-shadow rings (selected / digit-highlight)', () => {
     it('gives the selected cell a primary-then-secondary double ring on all four sides', () => {
       const s = style({ ...baseCell, isSelected: true }, 4, 4)
       expect(s.boxShadow).toBe(
@@ -90,30 +90,50 @@ describe('buildCellInlineStyle', () => {
       )
     })
 
-    it('gives a non-selected cell in the focused row a spread-based band ring (same technique as the selection ring)', () => {
-      const s = style(baseCell, 4, 2, 4, 7) // row 4 matches selectedRow, col 2 != selectedCol 7
-      expect(s.boxShadow).toBe(
-        'inset 0 0 0 3px var(--color-band-primary), inset 0 0 0 5px var(--color-band-secondary)',
-      )
-    })
-
-    it('gives a non-selected cell in the focused column the same spread-based band ring', () => {
-      const s = style(baseCell, 1, 7, 4, 7) // col 7 matches selectedCol, row 1 != selectedRow 4
-      expect(s.boxShadow).toBe(
-        'inset 0 0 0 3px var(--color-band-primary), inset 0 0 0 5px var(--color-band-secondary)',
-      )
-    })
-
-    it('gives the selected cell no row/col band (it already has its own ring)', () => {
-      const s = style({ ...baseCell, isSelected: true }, 4, 7, 4, 7)
-      expect(s.boxShadow).toBe(
-        'inset 0 0 0 3px var(--color-ring-primary), inset 0 0 0 6px var(--color-ring-secondary)',
-      )
-    })
-
     it('has no box-shadow at all for an ordinary cell outside the selection', () => {
       const s = style(baseCell, 4, 4, 0, 0)
       expect(s.boxShadow).toBeUndefined()
+    })
+
+    it('has no box-shadow for a cell in the focused row/column either — the band is a border, not a shadow', () => {
+      const s = style(baseCell, 4, 2, 4, 7) // row 4 matches selectedRow
+      expect(s.boxShadow).toBeUndefined()
+    })
+  })
+
+  describe('row/column band (--band-color custom property, consumed by a border in grid.css)', () => {
+    it('sets --band-color for a non-selected cell in the focused row', () => {
+      const s = style(baseCell, 4, 2, 4, 7) // row 4 matches selectedRow, col 2 != selectedCol 7
+      expect(s).toMatchObject({ '--band-color': 'var(--color-band-primary)' })
+    })
+
+    it('sets --band-color for a non-selected cell in the focused column', () => {
+      const s = style(baseCell, 1, 7, 4, 7) // col 7 matches selectedCol, row 1 != selectedRow 4
+      expect(s).toMatchObject({ '--band-color': 'var(--color-band-primary)' })
+    })
+
+    it('does not set --band-color for the selected cell itself (it already has its own ring)', () => {
+      const s = style({ ...baseCell, isSelected: true }, 4, 7, 4, 7)
+      expect(s).not.toHaveProperty('--band-color')
+    })
+
+    it('does not set --band-color for a cell outside the focused row/column', () => {
+      const s = style(baseCell, 4, 4, 0, 0)
+      expect(s).not.toHaveProperty('--band-color')
+    })
+
+    it('uses the cell\'s own digit-ink (not the theme default) when a filled cell is in the band', () => {
+      // A single fixed band color can't clear 3:1 against all 9 identity
+      // colors (that's why the ring needs a two-tone pair) — reusing the
+      // ink already chosen for 4.5:1 text contrast against this exact
+      // cell's own background sidesteps that without needing a second color.
+      const s = style({ ...baseCell, value: 5 }, 4, 2, 4, 7)
+      expect(s).toMatchObject({ '--band-color': 'var(--identity-5-ink)' })
+    })
+
+    it('uses the swapped ink for a completed digit in the band, matching its own swapped fill', () => {
+      const s = style({ ...baseCell, value: 5, isDigitComplete: true }, 4, 2, 4, 7)
+      expect(s).toMatchObject({ '--band-color': 'var(--identity-5)' })
     })
   })
 })
