@@ -63,6 +63,22 @@ import type { CellDisplayState } from './cellLabel'
  * the `isSelected` branch above and therefore can never also reach the
  * band branch. If that exclusion ever changes, a banded cell could
  * silently swallow a keyboard user's focus indicator.
+ *
+ * Box elevation: every cell sharing the selected cell's 3x3 box gets a
+ * `transform: scale()` plus a drop shadow, so the whole box appears to lift
+ * as a single unit — a purely supplementary visual cue layered on top of
+ * the box's own (already always-visible) outline color, never the sole way
+ * to tell which box is active. The grid has no single wrapping element per
+ * box (it's a flat 9x9 grid of cells), so each cell's `transform-origin` is
+ * set to the box's own far corner/edge/center based on that cell's position
+ * *within* the box (row%3, col%3) — every one of the 9 cells then grows
+ * away from the box's shared center point instead of its own, which reads
+ * as the box expanding outward together rather than 9 cells each puffing up
+ * independently. This composes freely with the ring/band styles above: it
+ * uses `transform` and an outset `box-shadow` (append-only — never
+ * overwrites the inset ring shadows already pushed onto `shadows`, since
+ * inset and outset shadows occupy entirely separate, non-overlapping
+ * painted regions), neither of which any state above already claims.
  */
 export function buildCellInlineStyle(
   cell: CellDisplayState,
@@ -71,6 +87,7 @@ export function buildCellInlineStyle(
   selectedRow: number | null,
   selectedCol: number | null,
   nonEdgeBorderColor: string,
+  focusedBox: number | null,
 ): CSSProperties {
   const style: Record<string, string> = {}
   let digitInk: string | null = null
@@ -115,6 +132,29 @@ export function buildCellInlineStyle(
       style.outlineOffset = '-4px'
       style.outlineColor = digitInk ?? 'var(--color-band-primary)'
     }
+  }
+
+  // Every box-mate deliberately grows into its neighbors along their shared
+  // internal edges (that's what makes the box read as one lifted unit), and
+  // they all share the same z-index, so DOM order decides which one paints
+  // on top along each seam. The *selected* cell is excluded from this even
+  // though it's in the box too — otherwise a later-DOM-order box-mate could
+  // paint over a sliver of the selected cell's own ring, the one indicator
+  // in this whole file that must never be partially covered by something
+  // else. The selected cell's ring is already the strongest signal in the
+  // grid, so it doesn't need the lift effect on top of it anyway.
+  if (focusedBox !== null && cell.box === focusedBox && !cell.isSelected) {
+    // The origin sits at each cell's corner NEAREST the box's shared center
+    // (the opposite of that cell's own position within the box) — scaling
+    // up then pushes every cell's outer edge away from the box center, so
+    // all 9 cells expand outward together instead of each ballooning around
+    // its own middle.
+    const originX = col % 3 === 0 ? '100%' : col % 3 === 1 ? '50%' : '0%'
+    const originY = row % 3 === 0 ? '100%' : row % 3 === 1 ? '50%' : '0%'
+    style.transform = 'scale(1.06)'
+    style.transformOrigin = `${originX} ${originY}`
+    style.zIndex = '1'
+    shadows.push('0 3px 8px var(--elevation-shadow)')
   }
 
   if (shadows.length > 0) {

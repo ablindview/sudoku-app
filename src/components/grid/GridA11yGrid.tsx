@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, type KeyboardEvent } from 'react'
-import { toIndex, toRowCol } from '../../engine/board'
+import { boxOf, toIndex, toRowCol } from '../../engine/board'
 import { useAnnouncer } from '../../a11y/useAnnouncer'
 import { useGameDispatch, useGameState } from '../../game/useGame'
 import { useSettings } from '../../settings/useSettings'
@@ -78,6 +78,7 @@ export function GridA11yGrid() {
   const highlightedValue = state.selectedIndex !== null ? state.values[state.selectedIndex] : 0
   const selectedRow = state.selectedIndex !== null ? toRowCol(state.selectedIndex).row : null
   const selectedCol = state.selectedIndex !== null ? toRowCol(state.selectedIndex).col : null
+  const focusedBox = selectedRow !== null && selectedCol !== null ? boxOf(selectedRow, selectedCol) : null
   const completedDigits = useMemo(() => computeCompletedDigits(state), [state])
 
   return (
@@ -108,7 +109,7 @@ export function GridA11yGrid() {
                 data-row={row}
                 data-col={col}
                 className={classNames.join(' ')}
-                style={buildCellInlineStyle(cell, row, col, selectedRow, selectedCol, 'transparent')}
+                style={buildCellInlineStyle(cell, row, col, selectedRow, selectedCol, 'transparent', focusedBox)}
                 onClick={() => dispatch({ type: 'SELECT_CELL', index })}
                 onKeyDown={(event) => handleKeyDown(event, index)}
               >

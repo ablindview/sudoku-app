@@ -48,6 +48,13 @@
      reliably shows up at all. */
   --color-band-primary: #000000;
 
+  /* Drop shadow for the "focused box lifts up" effect (see cellStyle.ts).
+     Purely decorative/supplementary — the box's own outline color is always
+     visible regardless, so this never needs its own contrast guarantee. A
+     dark, semi-transparent shadow reads as elevation against this theme's
+     light surface. */
+  --elevation-shadow: rgba(0, 0, 0, 0.35);
+
   /* Per-digit identity colors (1-9): validated categorical palette, boosted
      to near-maximum saturation (re-validated: lightness band, chroma floor,
      CVD separation, and normal-vision floor all still pass) so they read as
@@ -115,6 +122,12 @@
 
   --color-band-primary: #ffffff;
 
+  /* Dark surfaces don't darken further in any visible way, so a plain black
+     shadow (the light theme's approach) would show little to no depth —
+     keep it dark but at higher opacity, since #232427 isn't pure black and
+     a strong-enough dark shadow still reads against it. */
+  --elevation-shadow: rgba(0, 0, 0, 0.6);
+
   --identity-1: #2585f9;
   --identity-1-ink: #1a1a1a;
   --identity-2: #f94f0b;
@@ -171,6 +184,7 @@
   --color-ring-primary: #000000;
   --color-ring-secondary: #ffffff;
   --color-band-primary: #000000;
+  --elevation-shadow: rgba(0, 0, 0, 0.5);
 
   --identity-1: var(--color-surface);
   --identity-1-ink: var(--color-text);
@@ -221,6 +235,9 @@
   --color-ring-primary: #ffffff;
   --color-ring-secondary: #000000;
   --color-band-primary: #ffffff;
+  /* This surface is pure black, so a dark shadow (every other theme's
+     approach) would be completely invisible — use a light glow instead. */
+  --elevation-shadow: rgba(255, 255, 255, 0.3);
 
   --identity-1: var(--color-surface);
   --identity-1-ink: var(--color-text);

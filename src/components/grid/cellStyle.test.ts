@@ -17,9 +17,15 @@ const baseCell: CellDisplayState = {
   isDigitComplete: false,
 }
 
-// (row, col, selectedRow, selectedCol, nonEdgeColor='transparent')
-const style = (cell: CellDisplayState, row: number, col: number, selRow: number | null = null, selCol: number | null = null) =>
-  buildCellInlineStyle(cell, row, col, selRow, selCol, 'transparent')
+// (row, col, selectedRow, selectedCol, nonEdgeColor='transparent', focusedBox=null)
+const style = (
+  cell: CellDisplayState,
+  row: number,
+  col: number,
+  selRow: number | null = null,
+  selCol: number | null = null,
+  focusedBox: number | null = null,
+) => buildCellInlineStyle(cell, row, col, selRow, selCol, 'transparent', focusedBox)
 
 describe('buildCellInlineStyle', () => {
   it('sets digit color variables only when the cell has a value', () => {
@@ -67,7 +73,7 @@ describe('buildCellInlineStyle', () => {
     })
 
     it('uses the caller-supplied non-edge color (Mode B passes a visible gray, not transparent)', () => {
-      const s = buildCellInlineStyle(baseCell, 1, 1, null, null, 'var(--color-border)')
+      const s = buildCellInlineStyle(baseCell, 1, 1, null, null, 'var(--color-border)', null)
       expect(s.borderTopColor).toBe('var(--color-border)')
     })
   })
@@ -136,6 +142,69 @@ describe('buildCellInlineStyle', () => {
     it('uses the swapped ink for a completed digit in the band, matching its own swapped fill', () => {
       const s = style({ ...baseCell, value: 5, isDigitComplete: true }, 4, 2, 4, 7)
       expect(s).toMatchObject({ ...bandOutline, outlineColor: 'var(--identity-5)' })
+    })
+  })
+
+  describe('box elevation (transform + drop shadow when the cell shares the focused box)', () => {
+    it('elevates a cell whose box matches focusedBox', () => {
+      const s = style({ ...baseCell, box: 4 }, 4, 4, null, null, 4)
+      expect(s.transform).toBe('scale(1.06)')
+      expect(s.boxShadow).toBe('0 3px 8px var(--elevation-shadow)')
+    })
+
+    it('does not elevate a cell in a different box', () => {
+      const s = style({ ...baseCell, box: 4 }, 4, 4, null, null, 0)
+      expect(s.transform).toBeUndefined()
+      expect(s.boxShadow).toBeUndefined()
+    })
+
+    it('does not elevate anything when no box is focused', () => {
+      const s = style({ ...baseCell, box: 4 }, 4, 4, null, null, null)
+      expect(s.transform).toBeUndefined()
+    })
+
+    it('excludes the selected cell itself from elevation, even though it is in the focused box', () => {
+      // A box-mate deliberately grows into its neighbors along their shared
+      // edge to read as one lifted unit, and all box-mates share the same
+      // z-index — so a later-DOM-order box-mate could paint over a sliver
+      // of the selected cell's own ring if the selected cell elevated too.
+      // The ring is the one indicator that must never be partially covered,
+      // and it's already the strongest signal in the grid regardless.
+      const s = style({ ...baseCell, box: 4, isSelected: true }, 4, 4, null, null, 4)
+      expect(s.transform).toBeUndefined()
+      expect(s.zIndex).toBeUndefined()
+      expect(s.boxShadow).toBe(
+        'inset 0 0 0 3px var(--color-ring-primary), inset 0 0 0 6px var(--color-ring-secondary)',
+      )
+    })
+
+    it('appends the elevation shadow alongside the same-digit highlight ring on a non-selected box-mate', () => {
+      const s = style({ ...baseCell, box: 4, value: 7, isDigitHighlighted: true }, 4, 4, null, null, 4)
+      expect(s.boxShadow).toBe(
+        'inset 0 0 0 4px var(--color-ring-primary), inset 0 0 0 7px var(--color-ring-secondary), 0 3px 8px var(--elevation-shadow)',
+      )
+    })
+
+    it('anchors the transform-origin at each cell\'s corner nearest the box center, per its position within the box', () => {
+      // box-relative (row%3, col%3): top-left cell anchors at its own
+      // bottom-right (100% 100%) so scaling pushes it up-left, away from
+      // the box center — and so on for the other 8 positions.
+      expect(style(baseCell, 0, 0, null, null, 0).transformOrigin).toBe('100% 100%') // top-left
+      expect(style(baseCell, 0, 1, null, null, 0).transformOrigin).toBe('50% 100%') // top-center
+      expect(style(baseCell, 0, 2, null, null, 0).transformOrigin).toBe('0% 100%') // top-right
+      expect(style(baseCell, 1, 0, null, null, 0).transformOrigin).toBe('100% 50%') // middle-left
+      expect(style(baseCell, 1, 1, null, null, 0).transformOrigin).toBe('50% 50%') // center
+      expect(style(baseCell, 1, 2, null, null, 0).transformOrigin).toBe('0% 50%') // middle-right
+      expect(style(baseCell, 2, 0, null, null, 0).transformOrigin).toBe('100% 0%') // bottom-left
+      expect(style(baseCell, 2, 1, null, null, 0).transformOrigin).toBe('50% 0%') // bottom-center
+      expect(style(baseCell, 2, 2, null, null, 0).transformOrigin).toBe('0% 0%') // bottom-right
+    })
+
+    it('composes with the row/column band outline on a non-selected cell in both the focused box and band', () => {
+      // row 4, col 2 is box 3 (boxOf(4,2) === 3); row 4 matches selectedRow, col 2 != selectedCol 7
+      const s = style({ ...baseCell, box: 3 }, 4, 2, 4, 7, 3)
+      expect(s.outlineColor).toBe('var(--color-band-primary)')
+      expect(s.transform).toBe('scale(1.06)')
     })
   })
 })
