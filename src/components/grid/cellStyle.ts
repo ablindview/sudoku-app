@@ -4,9 +4,9 @@ import type { CellDisplayState } from './cellLabel'
 /**
  * Per-cell inline style: the digit's identity color (background/ink), the
  * 3x3 box's outline color (overridden to a bright red for whichever box is
- * currently focused), and — for exactly one of "selected" / "same-digit
- * match" / "in the focused row or column" — a ring drawn via `box-shadow`
- * (selected) or `outline` (same-digit highlight, row/col band).
+ * currently focused), and — for exactly one of "selected" / "in the focused
+ * row or column" — a ring drawn via `box-shadow` (selected) or `outline`
+ * (row/col band). "Same-digit match" is not a ring at all: see below.
  *
  * Box-edge color uses `border` rather than `box-shadow` deliberately: an
  * inset box-shadow is clipped to the padding box (i.e. it starts just
@@ -26,31 +26,44 @@ import type { CellDisplayState } from './cellLabel'
  * fixed box-outline color, so thickness is the *only* thing that marks the
  * focused box there.
  *
- * The row/column band and the same-digit highlight both use `outline`
- * (rather than `box-shadow`, which repeatedly failed to repaint reliably on
- * one user's real iOS Safari for cells other than the one selected at
- * initial page load, across several techniques tried here): it's set
- * directly inline on the real cell element (same mechanism `border` and the
- * selected-cell `box-shadow` already use, no pseudo-element and no
- * custom-property-into-generated-content indirection involved).
+ * A focused-box perimeter cell (one with a red edge on at least one side)
+ * never also gets the row/column band outline, even when it would otherwise
+ * qualify (its row or column is the selected one) — requested so red reads
+ * as unambiguously dominant at the seam between the two, rather than a red
+ * border and a white outline competing right next to each other. The band
+ * still shows normally on every other cell in that row/column.
  *
- * Both the band and the same-digit highlight are single flat colors — a
- * uniform look was requested over the earlier per-cell-contrast-guaranteed
- * approach (reusing each cell's own --digit-ink), which produced a visibly
- * inconsistent outline color from one band cell to the next depending on
- * what digit happened to be in it. NOTE: since a single fixed color cannot
- * clear 3:1 contrast against all 9 identity fill colors (the same reason
- * the selected-cell ring uses a two-tone pair), both `--color-highlight`
- * and `--color-focused-box` will read poorly against some digits' own fill
- * — this was an explicit, informed trade-off (uniformity over guaranteed
- * per-cell contrast), not an oversight.
+ * The row/column band uses `outline` (rather than `box-shadow`, which
+ * repeatedly failed to repaint reliably on one user's real iOS Safari for
+ * cells other than the one selected at initial page load, across several
+ * techniques tried here): it's set directly inline on the real cell element
+ * (same mechanism `border` and the selected-cell `box-shadow` already use,
+ * no pseudo-element and no custom-property-into-generated-content
+ * indirection involved). It's a single flat color — a uniform look was
+ * requested over the earlier per-cell-contrast-guaranteed approach (reusing
+ * each cell's own --digit-ink), which produced a visibly inconsistent
+ * outline color from one band cell to the next depending on what digit
+ * happened to be in it. NOTE: since a single fixed color cannot clear 3:1
+ * contrast against all 9 identity fill colors (the same reason the
+ * selected-cell ring uses a two-tone pair), both `--color-band-primary` and
+ * `--color-focused-box` will read poorly against some digits' own fill —
+ * an explicit, informed trade-off (uniformity over guaranteed per-cell
+ * contrast), not an oversight.
  *
- * "Selected", "same-digit highlight", and "in the focused row/column" are
- * mutually exclusive in valid, non-conflicting play (Sudoku's own rules
- * mean a matching digit can never legitimately share a row/column with the
- * selected cell, and a cell can match at most one of "in the selected row" /
- * "in the selected column" since both together would make it the selected
- * cell itself), so these never need to compose.
+ * Same-digit highlight is NOT a ring/outline at all: a matching cell drops
+ * its identity color entirely and shows a flat `--color-highlight-bg`/
+ * `-text` pair instead (inverted to white-bg/black-text in contrast-dark,
+ * whose ordinary filled cells are already black-bg/white-text and would
+ * otherwise be indistinguishable from a "highlighted" one). This is
+ * text-level contrast (aiming for 21:1, not just the 3:1 a ring needs), so
+ * it's strictly more readable than the ring it replaced, on top of being
+ * simpler.
+ *
+ * "Selected" and "in the focused row/column" are mutually exclusive in
+ * valid, non-conflicting play — and so is "same-digit match" with either of
+ * those, or with "in the focused box" (Sudoku's own rules mean a matching
+ * digit can never legitimately share a row, column, *or box* with the
+ * selected cell) — so none of these need to compose with each other.
  *
  * HAZARD for future edits: `outline` is the same CSS property `:focus-visible`
  * uses (see base.css) for the native keyboard focus ring, and an inline
@@ -58,9 +71,9 @@ import type { CellDisplayState } from './cellLabel'
  * This is currently safe only because real DOM focus is pinned to
  * `selectedIndex` (GridA11yGrid's roving tabindex / GridInputTable's
  * `<input>` focus), which is exactly the cell that takes the `isSelected`
- * branch above and therefore can never also reach the highlight/band
- * branches. If that exclusion ever changes, a highlighted or banded cell
- * could silently swallow a keyboard user's focus indicator.
+ * branch above and therefore can never also reach the band branch. If that
+ * exclusion ever changes, a banded cell could silently swallow a keyboard
+ * user's focus indicator.
  */
 export function buildCellInlineStyle(
   cell: CellDisplayState,
@@ -74,18 +87,29 @@ export function buildCellInlineStyle(
   const style: Record<string, string> = {}
 
   if (cell.value !== 0) {
-    // Once a digit has all 9 of its solution cells correctly filled, there's
-    // nowhere left to place another one — swap which of the pair is the
-    // background and which is the text, so completed digits read as clearly
-    // different at a glance. Contrast ratio is symmetric (contrast(A,B) ==
-    // contrast(B,A)), so this is guaranteed to stay exactly as readable as
-    // the normal look, for every digit, with no separate contrast check needed.
-    if (cell.isDigitComplete) {
+    if (cell.isDigitHighlighted) {
+      // Drop the identity color entirely instead of ringing it — see the
+      // module doc for why.
+      style['--digit-bg'] = 'var(--color-highlight-bg)'
+      style['--digit-ink'] = 'var(--color-highlight-text)'
+    } else if (cell.isDigitComplete) {
+      // Once a digit has all 9 of its solution cells correctly filled,
+      // there's nowhere left to place another one — swap which of the pair
+      // is the background and which is the text, so completed digits read
+      // as clearly different at a glance. Contrast ratio is symmetric
+      // (contrast(A,B) == contrast(B,A)), so this is guaranteed to stay
+      // exactly as readable as the normal look, for every digit, with no
+      // separate contrast check needed. Deliberately uses each digit's own
+      // --identity-N-ink here, NOT --color-digit-text below — this
+      // indicator's look is unaffected by that dark-theme-only override.
       style['--digit-bg'] = `var(--identity-${cell.value}-ink)`
       style['--digit-ink'] = `var(--identity-${cell.value})`
     } else {
       style['--digit-bg'] = `var(--identity-${cell.value})`
-      style['--digit-ink'] = `var(--identity-${cell.value}-ink)`
+      // --color-digit-text is only defined in the dark theme (a flat white,
+      // requested over the per-digit ink used everywhere else); it falls
+      // back to the normal per-digit ink in every other theme.
+      style['--digit-ink'] = `var(--color-digit-text, var(--identity-${cell.value}-ink))`
     }
   }
 
@@ -115,14 +139,14 @@ export function buildCellInlineStyle(
   style.borderLeftColor = col % 3 === 0 ? 'var(--box-color)' : nonEdgeBorderColor
   style.borderRightColor = col % 3 === 2 ? 'var(--box-color)' : nonEdgeBorderColor
 
+  // A perimeter cell of the focused box (one with a red edge on at least
+  // one side) never also gets the band outline below, so red never has to
+  // visually compete with white right at that seam — see the module doc.
+  const isFocusedBoxPerimeter = isFocusedBox && (row % 3 !== 1 || col % 3 !== 1)
+
   if (cell.isSelected) {
     style.boxShadow = 'inset 0 0 0 3px var(--color-ring-primary), inset 0 0 0 6px var(--color-ring-secondary)'
-  } else if (cell.isDigitHighlighted) {
-    style.outlineStyle = 'solid'
-    style.outlineWidth = '4px'
-    style.outlineOffset = '-4px'
-    style.outlineColor = 'var(--color-highlight)'
-  } else {
+  } else if (!isFocusedBoxPerimeter) {
     const inSelectedRow = selectedRow !== null && row === selectedRow
     const inSelectedCol = selectedCol !== null && col === selectedCol
     if (inSelectedRow || inSelectedCol) {

@@ -33,14 +33,21 @@ describe('buildCellInlineStyle', () => {
     expect(empty).not.toHaveProperty('--digit-bg')
 
     const filled = style({ ...baseCell, value: 5 }, 0, 0)
-    expect(filled).toMatchObject({ '--digit-bg': 'var(--identity-5)', '--digit-ink': 'var(--identity-5-ink)' })
+    expect(filled).toMatchObject({
+      '--digit-bg': 'var(--identity-5)',
+      // Falls back to the normal per-digit ink everywhere except the dark
+      // theme, where --color-digit-text overrides it to a flat white.
+      '--digit-ink': 'var(--color-digit-text, var(--identity-5-ink))',
+    })
   })
 
   it('swaps background and ink for a completed digit, guaranteeing the same contrast either way', () => {
     const normal = style({ ...baseCell, value: 5 }, 0, 0)
-    expect(normal).toMatchObject({ '--digit-bg': 'var(--identity-5)', '--digit-ink': 'var(--identity-5-ink)' })
+    expect(normal).toMatchObject({ '--digit-bg': 'var(--identity-5)' })
 
     const complete = style({ ...baseCell, value: 5, isDigitComplete: true }, 0, 0)
+    // Deliberately the plain per-digit ink, not --color-digit-text — the
+    // "digit complete" look is unaffected by the dark-theme text override.
     expect(complete).toMatchObject({ '--digit-bg': 'var(--identity-5-ink)', '--digit-ink': 'var(--identity-5)' })
   })
 
@@ -128,6 +135,29 @@ describe('buildCellInlineStyle', () => {
       expect(topLeft.borderTopWidth).toBe('3px')
       expect(topLeft.borderLeftWidth).toBe('3px')
     })
+
+    it('suppresses the row/column band outline on a focused-box perimeter cell, so red never competes with white at the seam', () => {
+      // row 0, col 1 is box 0's top-center perimeter cell (row%3=0 -> a red
+      // top edge); row 0 also matches selectedRow, which would otherwise
+      // qualify this cell for the band.
+      const s = style({ ...baseCell, box: 0 }, 0, 1, 0, 7, 0)
+      expect(s.borderTopColor).toBe('var(--box-color)')
+      expect(s).toMatchObject({ '--box-color': 'var(--color-focused-box)' })
+      expect(s.outlineColor).toBeUndefined()
+    })
+
+    it('still bands a cell in the focused row/column that is outside the focused box', () => {
+      const s = style({ ...baseCell, box: 5 }, 0, 7, 0, 7, 0) // box 0 focused, this cell is box 5
+      expect(s.outlineColor).toBe('var(--color-band-primary)')
+    })
+
+    it('does not suppress the band for the focused box\'s own center cell, which has no red edge at all', () => {
+      // row 1, col 1 is box 0's center — never gets a red border on any
+      // side, so there's nothing for a band outline to compete with.
+      const s = style({ ...baseCell, box: 0 }, 1, 1, 1, 7, 0)
+      expect(s.borderTopColor).toBe('transparent')
+      expect(s.outlineColor).toBe('var(--color-band-primary)')
+    })
   })
 
   describe('selected-cell ring (box-shadow)', () => {
@@ -143,26 +173,35 @@ describe('buildCellInlineStyle', () => {
       expect(s.boxShadow).toBeUndefined()
     })
 
-    it('has no box-shadow for a digit-highlighted or banded cell either — those use outline, not shadow', () => {
-      const highlighted = style({ ...baseCell, value: 7, isDigitHighlighted: true }, 4, 4)
-      expect(highlighted.boxShadow).toBeUndefined()
-
+    it('has no box-shadow for a banded cell either — that uses outline, not shadow', () => {
       const banded = style(baseCell, 4, 2, 4, 7) // row 4 matches selectedRow
       expect(banded.boxShadow).toBeUndefined()
     })
   })
 
-  describe('same-digit highlight (flat bright purple outline)', () => {
-    const highlightOutline = { outlineStyle: 'solid', outlineWidth: '4px', outlineOffset: '-4px' }
-
-    it('outlines a same-digit-highlighted cell in the flat highlight color', () => {
+  describe('same-digit highlight (flat bg/text swap, not a ring)', () => {
+    it('drops the identity color and shows the flat highlight bg/text pair for a same-digit-highlighted cell', () => {
       const s = style({ ...baseCell, value: 7, isDigitHighlighted: true }, 4, 4)
-      expect(s).toMatchObject({ ...highlightOutline, outlineColor: 'var(--color-highlight)' })
+      expect(s).toMatchObject({
+        '--digit-bg': 'var(--color-highlight-bg)',
+        '--digit-ink': 'var(--color-highlight-text)',
+      })
+      // no ring or outline — the bg/text swap is the entire signal
+      expect(s.boxShadow).toBeUndefined()
+      expect(s.outlineColor).toBeUndefined()
     })
 
-    it('does not outline an ordinary, non-highlighted cell', () => {
-      const s = style(baseCell, 4, 4, 0, 0)
-      expect(s.outlineColor).toBeUndefined()
+    it('takes priority over the digit-complete swap when a cell is somehow both', () => {
+      const s = style({ ...baseCell, value: 7, isDigitHighlighted: true, isDigitComplete: true }, 4, 4)
+      expect(s).toMatchObject({
+        '--digit-bg': 'var(--color-highlight-bg)',
+        '--digit-ink': 'var(--color-highlight-text)',
+      })
+    })
+
+    it('leaves an ordinary, non-highlighted filled cell with its normal identity color', () => {
+      const s = style({ ...baseCell, value: 7 }, 4, 4)
+      expect(s).toMatchObject({ '--digit-bg': 'var(--identity-7)' })
     })
   })
 
@@ -200,19 +239,6 @@ describe('buildCellInlineStyle', () => {
     it('uses the same flat color for a completed digit in the band too', () => {
       const s = style({ ...baseCell, value: 5, isDigitComplete: true }, 4, 2, 4, 7)
       expect(s).toMatchObject({ ...bandOutline, outlineColor: 'var(--color-band-primary)' })
-    })
-  })
-
-  describe('composition', () => {
-    it('composes the focused-box red edge with the row/column band outline on a non-selected cell in both', () => {
-      // row 4, col 2 is box 3 (boxOf(4,2) === 3); row 4 matches selectedRow, col 2 != selectedCol 7
-      const s = style({ ...baseCell, box: 3 }, 4, 2, 4, 7, 3)
-      expect(s).toMatchObject({ '--box-color': 'var(--color-focused-box)', outlineColor: 'var(--color-band-primary)' })
-    })
-
-    it('composes the focused-box red edge with the same-digit highlight outline', () => {
-      const s = style({ ...baseCell, box: 4, value: 7, isDigitHighlighted: true }, 4, 4, null, null, 4)
-      expect(s).toMatchObject({ '--box-color': 'var(--color-focused-box)', outlineColor: 'var(--color-highlight)' })
     })
   })
 })
