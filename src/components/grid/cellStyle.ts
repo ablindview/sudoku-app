@@ -3,10 +3,12 @@ import type { CellDisplayState } from './cellLabel'
 
 /**
  * Per-cell inline style: the digit's identity color (background/ink), the
- * 3x3 box's outline color (overridden to a bright red for whichever box is
- * currently focused), the row/column band, and — only for the selected cell
- * — a ring drawn via `box-shadow`. "Same-digit match" is not a ring at all:
- * see below.
+ * 3x3 box's edge (a plain, uniformly-neutral border using the theme's own
+ * dedicated box-boundary token, `--color-box-border` — no per-box hue
+ * anymore, wide enough to read as visible separation between boxes — see
+ * `--color-focused-box` below for the one box that's an exception), the
+ * row/column band, and — only for the selected cell — a ring drawn via
+ * `box-shadow`. "Same-digit match" is not a ring at all: see below.
  *
  * Box-edge color and the row/column band are BOTH drawn via per-side
  * `border`, not `box-shadow`/`outline` — the one mechanism that's stayed
@@ -17,14 +19,25 @@ import type { CellDisplayState } from './cellLabel'
  * the original, always-solid baseline). Since a cell's border already has
  * independent top/right/bottom/left colors, the box edge and the band can
  * both be expressed on the SAME cell without competing: true box-boundary
- * sides (row%3==0/2, col%3==0/2) always take `--box-color` (red if this is
- * the focused box, else the box's own identity hue); every other side
- * takes the band color (`--color-band-primary`) if the cell is banded, or
- * the caller-supplied non-edge color otherwise. A focused-box perimeter
- * cell that's also banded therefore shows red on its box-boundary side(s)
- * and white on the rest — requested explicitly, after an earlier version
- * suppressed the band entirely on those cells and lost the row/column
- * signal there.
+ * sides (row%3==0/2, col%3==0/2) always take `--box-color`; every other
+ * side takes the band color if the cell is banded, or the caller-supplied
+ * non-edge color otherwise.
+ *
+ * The band itself only colors the sides relevant to its *own* direction —
+ * top+bottom for a cell in the focused row, left+right for a cell in the
+ * focused column — not all four sides. Since every cell along that row (or
+ * column) gets the identical color on the identical pair of sides, their
+ * borders line up edge-to-edge into what reads as one continuous line
+ * spanning the row/column, rather than each cell getting its own individual
+ * outlined box (a look that was explicitly requested against — the earlier
+ * all-four-sides version read as "9 separate boxes", not "an outline around
+ * the row"). A cell can be in the focused row and column at once only if
+ * it's the selected cell itself (excluded — it gets its own ring instead),
+ * so a non-selected cell is never in both, and this composes cleanly with
+ * the box edge above: a focused-box perimeter cell that's also banded shows
+ * red on its box-boundary side(s) and the band's line continuing across the
+ * rest — requested explicitly, after an earlier version suppressed the band
+ * entirely on those cells and broke the line there.
  *
  * An inset box-shadow is clipped to the padding box (i.e. it starts just
  * *inside* the border), so the border above and the selected-cell ring
@@ -34,18 +47,17 @@ import type { CellDisplayState } from './cellLabel'
  * cells; this sidesteps that class of bug entirely instead of re-ordering
  * around it.)
  *
- * The focused box's true edge sides are thickened (5px vs the normal 3px)
- * so there's a non-color signal too — in the two contrast themes,
- * `--color-focused-box` deliberately equals the theme's one fixed
- * box-outline color, so thickness is the *only* thing that marks the
- * focused box there. Banded non-edge sides are similarly thickened (4px)
- * to match the visual weight the band had as a 4px outline previously.
- * NOTE: since a single fixed color cannot clear 3:1 contrast against all 9
- * identity fill colors (the same reason the selected-cell ring uses a
- * two-tone pair), both `--color-band-primary` and `--color-focused-box`
- * will read poorly against some digits' own fill — an explicit, informed
- * trade-off (uniformity over guaranteed per-cell contrast), not an
- * oversight.
+ * Box-edge width is 8px normally, 10px when focused (see below for why the
+ * focused box needs that second, non-color channel) — 8px is also wide
+ * enough on its own to read as visible separation between boxes, per an
+ * explicit request to differentiate boxes by space instead of by per-box
+ * color. Banded sides are thickened to 4px, matching the visual weight the
+ * band had as a 4px outline previously. NOTE: since a single fixed color
+ * cannot clear 3:1 contrast against all 9 identity fill colors (the same
+ * reason the selected-cell ring uses a two-tone pair), both
+ * `--color-band-primary` and `--color-focused-box` will read poorly against
+ * some digits' own fill — an explicit, informed trade-off (uniformity over
+ * guaranteed per-cell contrast), not an oversight.
  *
  * Same-digit highlight is NOT a ring/outline/border at all: a matching
  * cell drops its identity color entirely and shows a flat
@@ -100,37 +112,49 @@ export function buildCellInlineStyle(
     }
   }
 
-  // The focused box's true edge sides get a bright red override instead of
-  // its own identity-hued outline color, so the box currently in play reads
-  // as distinct from every other box at a glance. The edge is also
-  // thickened (5px vs the normal 3px) — in the two contrast themes,
-  // --color-focused-box deliberately equals the theme's one fixed
-  // box-outline color (no hue is introduced there, matching the rest of
-  // that theme's colorless design), so color alone would render every
-  // box's edge identical and the focused box would carry no signal at all.
-  // Thickness is a second, non-color channel that still differentiates it
-  // there, and reinforces the color difference everywhere else too (never
-  // rely on a single channel — same principle as the conflict marker's
-  // dashed border, see grid.css).
+  // Non-focused boxes use --color-box-border, the theme's existing dedicated
+  // box-boundary token (already used for the grid's own outer border) — a
+  // single neutral tone with no per-box hue, but one that's actually visible
+  // with no selection active. (An earlier version tried blending non-focused
+  // edges into --color-bg to read as true empty space, but caught in
+  // accessibility review: --color-bg and --color-surface — the cell's own
+  // fill — are only ~1.1:1 apart in light/dark, and identical in both
+  // contrast themes — invisible, not a gap, defeating the entire point of
+  // "differentiate the boxes.") The focused box overrides to bright red —
+  // except in the two contrast themes, where --color-focused-box
+  // necessarily equals --color-box-border (neither can introduce a
+  // distinguishing hue without breaking their whole colorless design), so
+  // color alone carries no signal there. The edge is thickened by 2px when
+  // focused (10px vs the normal 8px) as a second, non-color channel that
+  // covers exactly that case, and simply reinforces the color difference
+  // everywhere else — never rely on a single channel, same principle as the
+  // conflict marker's dashed border (see grid.css).
   const isFocusedBox = focusedBox !== null && cell.box === focusedBox
-  style['--box-color'] = isFocusedBox ? 'var(--color-focused-box)' : `var(--box-outline-${cell.box + 1})`
-  const edgeWidth = isFocusedBox ? '5px' : '3px'
+  style['--box-color'] = isFocusedBox ? 'var(--color-focused-box)' : 'var(--color-box-border)'
+  const EDGE_WIDTH = isFocusedBox ? '10px' : '8px'
+  const BAND_WIDTH = '4px'
 
-  // A cell is "banded" when it shares the selected cell's row or column but
-  // isn't the selected cell itself (which gets its own ring below instead).
-  const isBanded = !cell.isSelected && ((selectedRow !== null && row === selectedRow) || (selectedCol !== null && col === selectedCol))
-  const nonEdgeWidth = isBanded ? '4px' : '3px'
-  const nonEdgeColor = isBanded ? 'var(--color-band-primary)' : nonEdgeBorderColor
+  // The row band colors only top+bottom (never left/right); the column band
+  // colors only left+right — see the module doc for why this reads as one
+  // continuous line instead of a box around each cell. Neither ever applies
+  // to the selected cell, which gets its own ring below instead.
+  const inSelectedRow = !cell.isSelected && selectedRow !== null && row === selectedRow
+  const inSelectedCol = !cell.isSelected && selectedCol !== null && col === selectedCol
+
+  const topIsEdge = row % 3 === 0
+  const bottomIsEdge = row % 3 === 2
+  const leftIsEdge = col % 3 === 0
+  const rightIsEdge = col % 3 === 2
 
   style.borderStyle = 'solid'
-  style.borderTopWidth = row % 3 === 0 ? edgeWidth : nonEdgeWidth
-  style.borderBottomWidth = row % 3 === 2 ? edgeWidth : nonEdgeWidth
-  style.borderLeftWidth = col % 3 === 0 ? edgeWidth : nonEdgeWidth
-  style.borderRightWidth = col % 3 === 2 ? edgeWidth : nonEdgeWidth
-  style.borderTopColor = row % 3 === 0 ? 'var(--box-color)' : nonEdgeColor
-  style.borderBottomColor = row % 3 === 2 ? 'var(--box-color)' : nonEdgeColor
-  style.borderLeftColor = col % 3 === 0 ? 'var(--box-color)' : nonEdgeColor
-  style.borderRightColor = col % 3 === 2 ? 'var(--box-color)' : nonEdgeColor
+  style.borderTopWidth = topIsEdge ? EDGE_WIDTH : inSelectedRow ? BAND_WIDTH : '3px'
+  style.borderBottomWidth = bottomIsEdge ? EDGE_WIDTH : inSelectedRow ? BAND_WIDTH : '3px'
+  style.borderLeftWidth = leftIsEdge ? EDGE_WIDTH : inSelectedCol ? BAND_WIDTH : '3px'
+  style.borderRightWidth = rightIsEdge ? EDGE_WIDTH : inSelectedCol ? BAND_WIDTH : '3px'
+  style.borderTopColor = topIsEdge ? 'var(--box-color)' : inSelectedRow ? 'var(--color-band-primary)' : nonEdgeBorderColor
+  style.borderBottomColor = bottomIsEdge ? 'var(--box-color)' : inSelectedRow ? 'var(--color-band-primary)' : nonEdgeBorderColor
+  style.borderLeftColor = leftIsEdge ? 'var(--box-color)' : inSelectedCol ? 'var(--color-band-primary)' : nonEdgeBorderColor
+  style.borderRightColor = rightIsEdge ? 'var(--box-color)' : inSelectedCol ? 'var(--color-band-primary)' : nonEdgeBorderColor
 
   if (cell.isSelected) {
     style.boxShadow = 'inset 0 0 0 3px var(--color-ring-primary), inset 0 0 0 6px var(--color-ring-secondary)'

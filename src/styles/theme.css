@@ -48,11 +48,19 @@
      reliably shows up at all. */
   --color-band-primary: #000000;
 
-  /* Bright red override for whichever box's true edge is currently focused
-     (see cellStyle.ts) — a plain border, the one mechanism that's stayed
-     reliably visible across every indicator this file has tried. Single
-     flat color (not a two-tone contrast-guaranteed pair) since a uniform,
-     consistent color was requested over per-cell contrast-matching. */
+  /* Box edges no longer carry a per-box identity color (removed — see the
+     identity-color comment below); instead every box boundary is a plain,
+     wide border using --color-box-border (the theme's own dedicated
+     box-boundary token, already used for the grid's outer edge) — a single
+     neutral tone, no per-box hue, but genuinely visible with no selection
+     active. (An earlier version tried blending non-focused edges into
+     --color-bg to read as literal empty space, but --color-bg and
+     --color-surface — the cell's own fill — are only ~1.1:1 apart here,
+     identical in the two contrast themes: invisible, not a gap, caught in
+     accessibility review.) The currently focused box overrides that same
+     border to this bright red instead (also thickened slightly — see
+     cellStyle.ts, needed in the two contrast themes where color alone can't
+     differentiate). */
   --color-focused-box: #e60000;
 
   /* Same-digit highlight: instead of an outline, matching cells drop their
@@ -69,11 +77,10 @@
      CVD separation, and normal-vision floor all still pass) so they read as
      bold, saturated fills rather than muted tints — important for low-vision
      users. Cell background = the digit's color; ink is chosen per-swatch so
-     text on top clears 4.5:1. Box-outline colors reuse the same 9 hues,
-     keyed by 3x3 box index instead of digit value, so "which box am I in"
-     gets its own independent visual channel. Neither channel is the sole way
-     to identify a digit or a box — the numeral glyph and the aria-label
-     position are always present regardless of color perception. */
+     text on top clears 4.5:1. This is not the sole way to identify a digit —
+     the numeral glyph and the aria-label are always present regardless of
+     color perception. (3x3 boxes no longer get their own per-box hue here —
+     see --color-focused-box above for how box separation is drawn instead.) */
   --identity-1: #066eeb;
   --identity-1-ink: #ffffff;
   --identity-2: #f96226;
@@ -92,19 +99,6 @@
   --identity-8-ink: #1a1a1a;
   --identity-9: #0097ab;
   --identity-9-ink: #1a1a1a;
-  --box-outline-1: var(--identity-1);
-  --box-outline-2: var(--identity-2);
-  /* box-outline-3/4/5 are NOT the same hex as --identity-3/4/5: as pure
-     identity colors they read below the 3:1 non-text contrast minimum
-     against a white surface. Same hue, darkened just enough to clear 3:1 as
-     a border specifically — the digit-fill use of --identity-N is unaffected. */
-  --box-outline-3: #19a06f;
-  --box-outline-4: #bd8000;
-  --box-outline-5: #e35f91;
-  --box-outline-6: var(--identity-6);
-  --box-outline-7: var(--identity-7);
-  --box-outline-8: var(--identity-8);
-  --box-outline-9: var(--identity-9);
 }
 
 [data-theme='dark'] {
@@ -168,18 +162,6 @@
   --identity-8-ink: #1a1a1a;
   --identity-9: #059cb1;
   --identity-9-ink: #1a1a1a;
-  --box-outline-1: var(--identity-1);
-  --box-outline-2: var(--identity-2);
-  --box-outline-3: var(--identity-3);
-  --box-outline-4: var(--identity-4);
-  --box-outline-5: var(--identity-5);
-  /* Same reasoning as the light theme's box-outline-3/4/5 above: pure
-     --identity-6 (dark green) reads below 3:1 against the dark surface as a
-     border. Same hue, lightened just enough to clear 3:1. */
-  --box-outline-6: #008800;
-  --box-outline-7: var(--identity-7);
-  --box-outline-8: var(--identity-8);
-  --box-outline-9: var(--identity-9);
 }
 
 /* Pure black-on-white. Conflicts are never color-only: see .cell--conflict
@@ -208,9 +190,10 @@
   --color-band-primary: #000000;
   /* No red here — introducing hue would undercut the point of a theme
      built for maximum, color-independent contrast (see the file-level
-     comment above). Stays solid black, matching every other indicator in
-     this theme; cellStyle.ts thickens the focused box's border instead of
-     relying on a color difference that wouldn't exist here. */
+     comment above). Solid black — but that's the SAME value as
+     --color-box-border (non-focused box edges use it too), so color alone
+     can't mark the focused box in this theme; cellStyle.ts thickens its
+     border instead, the one channel left that isn't a color. */
   --color-focused-box: #000000;
   /* Every filled cell here is already black-text-on-white (identity-N maps
      to the theme's own surface/text) — this pair is simply the inverse, so
@@ -237,15 +220,6 @@
   --identity-8-ink: var(--color-text);
   --identity-9: var(--color-surface);
   --identity-9-ink: var(--color-text);
-  --box-outline-1: var(--color-box-border);
-  --box-outline-2: var(--color-box-border);
-  --box-outline-3: var(--color-box-border);
-  --box-outline-4: var(--color-box-border);
-  --box-outline-5: var(--color-box-border);
-  --box-outline-6: var(--color-box-border);
-  --box-outline-7: var(--color-box-border);
-  --box-outline-8: var(--color-box-border);
-  --box-outline-9: var(--color-box-border);
 }
 
 /* Pure white-on-black. Same rationale as contrast-light above. */
@@ -268,9 +242,9 @@
   --color-ring-primary: #ffffff;
   --color-ring-secondary: #000000;
   --color-band-primary: #ffffff;
-  /* Same rationale as contrast-light: no hue introduced, solid white to
-     match every other indicator in this theme; border thickness (not
-     color) differentiates the focused box, per cellStyle.ts. */
+  /* Same rationale as contrast-light: no hue introduced, solid white — the
+     same value as --color-box-border, so border thickness (not color)
+     differentiates the focused box here, per cellStyle.ts. */
   --color-focused-box: #ffffff;
   /* Inverted from every other theme's black-bg/white-text highlight: this
      theme's surface is already pure black with white text on every filled
@@ -299,15 +273,6 @@
   --identity-8-ink: var(--color-text);
   --identity-9: var(--color-surface);
   --identity-9-ink: var(--color-text);
-  --box-outline-1: var(--color-box-border);
-  --box-outline-2: var(--color-box-border);
-  --box-outline-3: var(--color-box-border);
-  --box-outline-4: var(--color-box-border);
-  --box-outline-5: var(--color-box-border);
-  --box-outline-6: var(--color-box-border);
-  --box-outline-7: var(--color-box-border);
-  --box-outline-8: var(--color-box-border);
-  --box-outline-9: var(--color-box-border);
 }
 
 :root {
