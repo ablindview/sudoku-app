@@ -48,12 +48,15 @@
      reliably shows up at all. */
   --color-band-primary: #000000;
 
-  /* Drop shadow for the "focused box lifts up" effect (see cellStyle.ts).
-     Purely decorative/supplementary — the box's own outline color is always
-     visible regardless, so this never needs its own contrast guarantee. A
-     dark, semi-transparent shadow reads as elevation against this theme's
-     light surface. */
-  --elevation-shadow: rgba(0, 0, 0, 0.35);
+  /* Bright red override for whichever box's true edge is currently focused
+     (see cellStyle.ts) — a plain border, the one mechanism that's stayed
+     reliably visible across every indicator this file has tried. Same-digit
+     highlight is a flat bright purple, replacing the earlier themed
+     black/white ring; both are single flat colors now (not a two-tone
+     contrast-guaranteed pair) since a uniform, consistent color was
+     requested over per-cell contrast-matching. */
+  --color-focused-box: #e60000;
+  --color-highlight: #9d00ff;
 
   /* Per-digit identity colors (1-9): validated categorical palette, boosted
      to near-maximum saturation (re-validated: lightness band, chroma floor,
@@ -122,11 +125,10 @@
 
   --color-band-primary: #ffffff;
 
-  /* Dark surfaces don't darken further in any visible way, so a plain black
-     shadow (the light theme's approach) would show little to no depth —
-     keep it dark but at higher opacity, since #232427 isn't pure black and
-     a strong-enough dark shadow still reads against it. */
-  --elevation-shadow: rgba(0, 0, 0, 0.6);
+  /* A slightly brighter red/purple than the light theme's, for visibility
+     against this theme's darker surface. */
+  --color-focused-box: #ff3b30;
+  --color-highlight: #c77dff;
 
   --identity-1: #2585f9;
   --identity-1-ink: #1a1a1a;
@@ -184,7 +186,13 @@
   --color-ring-primary: #000000;
   --color-ring-secondary: #ffffff;
   --color-band-primary: #000000;
-  --elevation-shadow: rgba(0, 0, 0, 0.5);
+  /* No red/purple here — introducing hue would undercut the point of a
+     theme built for maximum, color-independent contrast (see the file-level
+     comment above). Both stay solid black, matching every other indicator
+     in this theme; cellStyle.ts thickens the focused box's border instead
+     of relying on a color difference that wouldn't exist here. */
+  --color-focused-box: #000000;
+  --color-highlight: #000000;
 
   --identity-1: var(--color-surface);
   --identity-1-ink: var(--color-text);
@@ -235,9 +243,11 @@
   --color-ring-primary: #ffffff;
   --color-ring-secondary: #000000;
   --color-band-primary: #ffffff;
-  /* This surface is pure black, so a dark shadow (every other theme's
-     approach) would be completely invisible — use a light glow instead. */
-  --elevation-shadow: rgba(255, 255, 255, 0.3);
+  /* Same rationale as contrast-light: no hue introduced, solid white to
+     match every other indicator in this theme; border thickness (not
+     color) differentiates the focused box, per cellStyle.ts. */
+  --color-focused-box: #ffffff;
+  --color-highlight: #ffffff;
 
   --identity-1: var(--color-surface);
   --identity-1-ink: var(--color-text);

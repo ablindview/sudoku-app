@@ -78,21 +78,63 @@ describe('buildCellInlineStyle', () => {
     })
   })
 
-  describe('box-shadow rings (selected / digit-highlight)', () => {
-    it('gives the selected cell a primary-then-secondary double ring on all four sides', () => {
-      const s = style({ ...baseCell, isSelected: true }, 4, 4)
+  describe('focused box (bright red edge override, replacing the earlier scale/shadow lift)', () => {
+    it('overrides --box-color to the focused-box red for a cell in the focused box', () => {
+      const s = style({ ...baseCell, box: 4 }, 4, 4, null, null, 4)
+      expect(s).toMatchObject({ '--box-color': 'var(--color-focused-box)' })
+    })
+
+    it('keeps the normal per-box identity color for a cell outside the focused box', () => {
+      const s = style({ ...baseCell, box: 4 }, 4, 4, null, null, 0)
+      expect(s).toMatchObject({ '--box-color': 'var(--box-outline-5)' })
+    })
+
+    it('keeps the normal per-box identity color when no box is focused', () => {
+      const s = style({ ...baseCell, box: 4 }, 4, 4, null, null, null)
+      expect(s).toMatchObject({ '--box-color': 'var(--box-outline-5)' })
+    })
+
+    it('still only colors the true box-boundary sides of a focused-box cell, leaving interior sides at the non-edge color', () => {
+      const topLeft = style({ ...baseCell, box: 0 }, 0, 0, null, null, 0) // row%3=0,col%3=0: top+left are edges
+      expect(topLeft.borderTopColor).toBe('var(--box-color)')
+      expect(topLeft.borderLeftColor).toBe('var(--box-color)')
+      expect(topLeft.borderBottomColor).toBe('transparent')
+      expect(topLeft.borderRightColor).toBe('transparent')
+    })
+
+    it('applies to the selected cell too — the focused box includes the selected cell itself', () => {
+      const s = style({ ...baseCell, box: 4, isSelected: true }, 4, 4, null, null, 4)
+      expect(s).toMatchObject({ '--box-color': 'var(--color-focused-box)' })
+      // and its own ring is untouched by this
       expect(s.boxShadow).toBe(
         'inset 0 0 0 3px var(--color-ring-primary), inset 0 0 0 6px var(--color-ring-secondary)',
       )
     })
 
-    it('gives a same-digit-highlighted cell the same themed ring pair, not its own ink color', () => {
-      // Reusing --digit-ink here would blend the "you're highlighted" ring
-      // into the digit's own already-visible text color instead of reading
-      // as a distinct signal — see the module doc for why this was changed.
-      const s = style({ ...baseCell, value: 7, isDigitHighlighted: true }, 4, 4)
+    it('thickens the true box-boundary sides of a focused-box cell to 5px, a non-color signal for the two contrast themes', () => {
+      // In contrast-light/contrast-dark, --color-focused-box deliberately
+      // equals the theme's one fixed box-outline color (no hue introduced),
+      // so thickness is the only thing that differentiates the focused box
+      // there — this must not regress to a uniform 3px everywhere.
+      const topLeft = style({ ...baseCell, box: 0 }, 0, 0, null, null, 0) // row%3=0,col%3=0: top+left are edges
+      expect(topLeft.borderTopWidth).toBe('5px')
+      expect(topLeft.borderLeftWidth).toBe('5px')
+      expect(topLeft.borderBottomWidth).toBe('3px')
+      expect(topLeft.borderRightWidth).toBe('3px')
+    })
+
+    it('keeps the normal 3px edge width for a cell outside the focused box', () => {
+      const topLeft = style({ ...baseCell, box: 0 }, 0, 0, null, null, 5)
+      expect(topLeft.borderTopWidth).toBe('3px')
+      expect(topLeft.borderLeftWidth).toBe('3px')
+    })
+  })
+
+  describe('selected-cell ring (box-shadow)', () => {
+    it('gives the selected cell a primary-then-secondary double ring on all four sides', () => {
+      const s = style({ ...baseCell, isSelected: true }, 4, 4)
       expect(s.boxShadow).toBe(
-        'inset 0 0 0 4px var(--color-ring-primary), inset 0 0 0 7px var(--color-ring-secondary)',
+        'inset 0 0 0 3px var(--color-ring-primary), inset 0 0 0 6px var(--color-ring-secondary)',
       )
     })
 
@@ -101,13 +143,30 @@ describe('buildCellInlineStyle', () => {
       expect(s.boxShadow).toBeUndefined()
     })
 
-    it('has no box-shadow for a cell in the focused row/column either — the band is an outline, not a shadow', () => {
-      const s = style(baseCell, 4, 2, 4, 7) // row 4 matches selectedRow
-      expect(s.boxShadow).toBeUndefined()
+    it('has no box-shadow for a digit-highlighted or banded cell either — those use outline, not shadow', () => {
+      const highlighted = style({ ...baseCell, value: 7, isDigitHighlighted: true }, 4, 4)
+      expect(highlighted.boxShadow).toBeUndefined()
+
+      const banded = style(baseCell, 4, 2, 4, 7) // row 4 matches selectedRow
+      expect(banded.boxShadow).toBeUndefined()
     })
   })
 
-  describe('row/column band (inline outline, not box-shadow or a pseudo-element)', () => {
+  describe('same-digit highlight (flat bright purple outline)', () => {
+    const highlightOutline = { outlineStyle: 'solid', outlineWidth: '4px', outlineOffset: '-4px' }
+
+    it('outlines a same-digit-highlighted cell in the flat highlight color', () => {
+      const s = style({ ...baseCell, value: 7, isDigitHighlighted: true }, 4, 4)
+      expect(s).toMatchObject({ ...highlightOutline, outlineColor: 'var(--color-highlight)' })
+    })
+
+    it('does not outline an ordinary, non-highlighted cell', () => {
+      const s = style(baseCell, 4, 4, 0, 0)
+      expect(s.outlineColor).toBeUndefined()
+    })
+  })
+
+  describe('row/column band (flat theme-default outline, uniform for every cell)', () => {
     const bandOutline = { outlineStyle: 'solid', outlineWidth: '4px', outlineOffset: '-4px' }
 
     it('outlines a non-selected cell in the focused row with the theme default color', () => {
@@ -130,81 +189,30 @@ describe('buildCellInlineStyle', () => {
       expect(s.outlineColor).toBeUndefined()
     })
 
-    it('uses the cell\'s own digit-ink (not the theme default) when a filled cell is in the band', () => {
-      // A single fixed band color can't clear 3:1 against all 9 identity
-      // colors (that's why the ring needs a two-tone pair) — reusing the
-      // ink already chosen for 4.5:1 text contrast against this exact
-      // cell's own background sidesteps that without needing a second color.
+    it('uses the same flat theme-default color for a filled cell in the band, not its own digit-ink', () => {
+      // A uniform look was requested over the earlier per-cell contrast-matched
+      // approach (which reused each cell's own --digit-ink) — every band cell
+      // now shows the same color regardless of what digit it holds.
       const s = style({ ...baseCell, value: 5 }, 4, 2, 4, 7)
-      expect(s).toMatchObject({ ...bandOutline, outlineColor: 'var(--identity-5-ink)' })
+      expect(s).toMatchObject({ ...bandOutline, outlineColor: 'var(--color-band-primary)' })
     })
 
-    it('uses the swapped ink for a completed digit in the band, matching its own swapped fill', () => {
+    it('uses the same flat color for a completed digit in the band too', () => {
       const s = style({ ...baseCell, value: 5, isDigitComplete: true }, 4, 2, 4, 7)
-      expect(s).toMatchObject({ ...bandOutline, outlineColor: 'var(--identity-5)' })
+      expect(s).toMatchObject({ ...bandOutline, outlineColor: 'var(--color-band-primary)' })
     })
   })
 
-  describe('box elevation (transform + drop shadow when the cell shares the focused box)', () => {
-    it('elevates a cell whose box matches focusedBox', () => {
-      const s = style({ ...baseCell, box: 4 }, 4, 4, null, null, 4)
-      expect(s.transform).toBe('scale(1.06)')
-      expect(s.boxShadow).toBe('0 3px 8px var(--elevation-shadow)')
-    })
-
-    it('does not elevate a cell in a different box', () => {
-      const s = style({ ...baseCell, box: 4 }, 4, 4, null, null, 0)
-      expect(s.transform).toBeUndefined()
-      expect(s.boxShadow).toBeUndefined()
-    })
-
-    it('does not elevate anything when no box is focused', () => {
-      const s = style({ ...baseCell, box: 4 }, 4, 4, null, null, null)
-      expect(s.transform).toBeUndefined()
-    })
-
-    it('excludes the selected cell itself from elevation, even though it is in the focused box', () => {
-      // A box-mate deliberately grows into its neighbors along their shared
-      // edge to read as one lifted unit, and all box-mates share the same
-      // z-index — so a later-DOM-order box-mate could paint over a sliver
-      // of the selected cell's own ring if the selected cell elevated too.
-      // The ring is the one indicator that must never be partially covered,
-      // and it's already the strongest signal in the grid regardless.
-      const s = style({ ...baseCell, box: 4, isSelected: true }, 4, 4, null, null, 4)
-      expect(s.transform).toBeUndefined()
-      expect(s.zIndex).toBeUndefined()
-      expect(s.boxShadow).toBe(
-        'inset 0 0 0 3px var(--color-ring-primary), inset 0 0 0 6px var(--color-ring-secondary)',
-      )
-    })
-
-    it('appends the elevation shadow alongside the same-digit highlight ring on a non-selected box-mate', () => {
-      const s = style({ ...baseCell, box: 4, value: 7, isDigitHighlighted: true }, 4, 4, null, null, 4)
-      expect(s.boxShadow).toBe(
-        'inset 0 0 0 4px var(--color-ring-primary), inset 0 0 0 7px var(--color-ring-secondary), 0 3px 8px var(--elevation-shadow)',
-      )
-    })
-
-    it('anchors the transform-origin at each cell\'s corner nearest the box center, per its position within the box', () => {
-      // box-relative (row%3, col%3): top-left cell anchors at its own
-      // bottom-right (100% 100%) so scaling pushes it up-left, away from
-      // the box center — and so on for the other 8 positions.
-      expect(style(baseCell, 0, 0, null, null, 0).transformOrigin).toBe('100% 100%') // top-left
-      expect(style(baseCell, 0, 1, null, null, 0).transformOrigin).toBe('50% 100%') // top-center
-      expect(style(baseCell, 0, 2, null, null, 0).transformOrigin).toBe('0% 100%') // top-right
-      expect(style(baseCell, 1, 0, null, null, 0).transformOrigin).toBe('100% 50%') // middle-left
-      expect(style(baseCell, 1, 1, null, null, 0).transformOrigin).toBe('50% 50%') // center
-      expect(style(baseCell, 1, 2, null, null, 0).transformOrigin).toBe('0% 50%') // middle-right
-      expect(style(baseCell, 2, 0, null, null, 0).transformOrigin).toBe('100% 0%') // bottom-left
-      expect(style(baseCell, 2, 1, null, null, 0).transformOrigin).toBe('50% 0%') // bottom-center
-      expect(style(baseCell, 2, 2, null, null, 0).transformOrigin).toBe('0% 0%') // bottom-right
-    })
-
-    it('composes with the row/column band outline on a non-selected cell in both the focused box and band', () => {
+  describe('composition', () => {
+    it('composes the focused-box red edge with the row/column band outline on a non-selected cell in both', () => {
       // row 4, col 2 is box 3 (boxOf(4,2) === 3); row 4 matches selectedRow, col 2 != selectedCol 7
       const s = style({ ...baseCell, box: 3 }, 4, 2, 4, 7, 3)
-      expect(s.outlineColor).toBe('var(--color-band-primary)')
-      expect(s.transform).toBe('scale(1.06)')
+      expect(s).toMatchObject({ '--box-color': 'var(--color-focused-box)', outlineColor: 'var(--color-band-primary)' })
+    })
+
+    it('composes the focused-box red edge with the same-digit highlight outline', () => {
+      const s = style({ ...baseCell, box: 4, value: 7, isDigitHighlighted: true }, 4, 4, null, null, 4)
+      expect(s).toMatchObject({ '--box-color': 'var(--color-focused-box)', outlineColor: 'var(--color-highlight)' })
     })
   })
 })
