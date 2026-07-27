@@ -56,7 +56,7 @@ describe('buildCellInlineStyle', () => {
     expect(s).toMatchObject({ '--box-color': 'var(--box-outline-5)' })
   })
 
-  describe('box-edge border', () => {
+  describe('box-edge border (unbanded cell)', () => {
     it('colors only the true box-boundary sides, leaving the rest at the given non-edge color', () => {
       const topLeft = style(baseCell, 0, 0) // row%3=0, col%3=0: top+left are box edges
       expect(topLeft.borderTopColor).toBe('var(--box-color)')
@@ -82,6 +82,12 @@ describe('buildCellInlineStyle', () => {
     it('uses the caller-supplied non-edge color (Mode B passes a visible gray, not transparent)', () => {
       const s = buildCellInlineStyle(baseCell, 1, 1, null, null, 'var(--color-border)', null)
       expect(s.borderTopColor).toBe('var(--color-border)')
+    })
+
+    it('gives non-edge sides the normal 3px width when unbanded', () => {
+      const s = style(baseCell, 1, 1)
+      expect(s.borderTopWidth).toBe('3px')
+      expect(s.borderRightWidth).toBe('3px')
     })
   })
 
@@ -135,29 +141,6 @@ describe('buildCellInlineStyle', () => {
       expect(topLeft.borderTopWidth).toBe('3px')
       expect(topLeft.borderLeftWidth).toBe('3px')
     })
-
-    it('suppresses the row/column band outline on a focused-box perimeter cell, so red never competes with white at the seam', () => {
-      // row 0, col 1 is box 0's top-center perimeter cell (row%3=0 -> a red
-      // top edge); row 0 also matches selectedRow, which would otherwise
-      // qualify this cell for the band.
-      const s = style({ ...baseCell, box: 0 }, 0, 1, 0, 7, 0)
-      expect(s.borderTopColor).toBe('var(--box-color)')
-      expect(s).toMatchObject({ '--box-color': 'var(--color-focused-box)' })
-      expect(s.outlineColor).toBeUndefined()
-    })
-
-    it('still bands a cell in the focused row/column that is outside the focused box', () => {
-      const s = style({ ...baseCell, box: 5 }, 0, 7, 0, 7, 0) // box 0 focused, this cell is box 5
-      expect(s.outlineColor).toBe('var(--color-band-primary)')
-    })
-
-    it('does not suppress the band for the focused box\'s own center cell, which has no red edge at all', () => {
-      // row 1, col 1 is box 0's center — never gets a red border on any
-      // side, so there's nothing for a band outline to compete with.
-      const s = style({ ...baseCell, box: 0 }, 1, 1, 1, 7, 0)
-      expect(s.borderTopColor).toBe('transparent')
-      expect(s.outlineColor).toBe('var(--color-band-primary)')
-    })
   })
 
   describe('selected-cell ring (box-shadow)', () => {
@@ -173,7 +156,7 @@ describe('buildCellInlineStyle', () => {
       expect(s.boxShadow).toBeUndefined()
     })
 
-    it('has no box-shadow for a banded cell either — that uses outline, not shadow', () => {
+    it('has no box-shadow for a banded cell either — that uses border, not shadow', () => {
       const banded = style(baseCell, 4, 2, 4, 7) // row 4 matches selectedRow
       expect(banded.boxShadow).toBeUndefined()
     })
@@ -186,9 +169,8 @@ describe('buildCellInlineStyle', () => {
         '--digit-bg': 'var(--color-highlight-bg)',
         '--digit-ink': 'var(--color-highlight-text)',
       })
-      // no ring or outline — the bg/text swap is the entire signal
+      // no ring or extra border/outline signal — the bg/text swap is the entire signal
       expect(s.boxShadow).toBeUndefined()
-      expect(s.outlineColor).toBeUndefined()
     })
 
     it('takes priority over the digit-complete swap when a cell is somehow both', () => {
@@ -205,27 +187,30 @@ describe('buildCellInlineStyle', () => {
     })
   })
 
-  describe('row/column band (flat theme-default outline, uniform for every cell)', () => {
-    const bandOutline = { outlineStyle: 'solid', outlineWidth: '4px', outlineOffset: '-4px' }
-
-    it('outlines a non-selected cell in the focused row with the theme default color', () => {
-      const s = style(baseCell, 4, 2, 4, 7) // row 4 matches selectedRow, col 2 != selectedCol 7
-      expect(s).toMatchObject({ ...bandOutline, outlineColor: 'var(--color-band-primary)' })
+  describe('row/column band (per-side border, coexists with the box edge on the same cell)', () => {
+    it('colors the non-edge sides of a banded interior cell with the flat theme-default color, at 4px', () => {
+      const s = style(baseCell, 4, 4, 4, 7) // row 4 matches selectedRow; row%3=1,col%3=1 -> a true box-interior cell
+      expect(s.borderTopColor).toBe('var(--color-band-primary)')
+      expect(s.borderTopWidth).toBe('4px')
+      expect(s.borderBottomColor).toBe('var(--color-band-primary)')
+      expect(s.borderLeftColor).toBe('var(--color-band-primary)')
+      expect(s.borderRightColor).toBe('var(--color-band-primary)')
     })
 
-    it('outlines a non-selected cell in the focused column with the theme default color', () => {
+    it('bands a cell in the focused column the same way', () => {
       const s = style(baseCell, 1, 7, 4, 7) // col 7 matches selectedCol, row 1 != selectedRow 4
-      expect(s).toMatchObject({ ...bandOutline, outlineColor: 'var(--color-band-primary)' })
+      expect(s.borderTopColor).toBe('var(--color-band-primary)')
     })
 
-    it('gives the selected cell no band outline (it already has its own ring)', () => {
+    it('gives the selected cell no band coloring on its non-edge sides (it already has its own ring)', () => {
       const s = style({ ...baseCell, isSelected: true }, 4, 7, 4, 7)
-      expect(s.outlineColor).toBeUndefined()
+      expect(s.borderTopColor).toBe('transparent') // falls back to the caller's non-edge color
     })
 
-    it('gives no band outline to a cell outside the focused row/column', () => {
+    it('gives no band coloring to a cell outside the focused row/column', () => {
       const s = style(baseCell, 4, 4, 0, 0)
-      expect(s.outlineColor).toBeUndefined()
+      expect(s.borderTopColor).toBe('transparent')
+      expect(s.borderTopWidth).toBe('3px')
     })
 
     it('uses the same flat theme-default color for a filled cell in the band, not its own digit-ink', () => {
@@ -233,12 +218,40 @@ describe('buildCellInlineStyle', () => {
       // approach (which reused each cell's own --digit-ink) — every band cell
       // now shows the same color regardless of what digit it holds.
       const s = style({ ...baseCell, value: 5 }, 4, 2, 4, 7)
-      expect(s).toMatchObject({ ...bandOutline, outlineColor: 'var(--color-band-primary)' })
+      expect(s.borderTopColor).toBe('var(--color-band-primary)')
     })
 
     it('uses the same flat color for a completed digit in the band too', () => {
       const s = style({ ...baseCell, value: 5, isDigitComplete: true }, 4, 2, 4, 7)
-      expect(s).toMatchObject({ ...bandOutline, outlineColor: 'var(--color-band-primary)' })
+      expect(s.borderTopColor).toBe('var(--color-band-primary)')
+    })
+
+    it('shows red on the box-boundary side and the band color on the rest, on the same focused-box perimeter cell', () => {
+      // row 0, col 1 is box 0's top-center perimeter cell (row%3=0 -> a red
+      // top edge, col%3=1 -> left/right are non-edge); row 0 also matches
+      // selectedRow, so its non-edge sides qualify for the band.
+      const s = style({ ...baseCell, box: 0 }, 0, 1, 0, 7, 0)
+      expect(s.borderTopColor).toBe('var(--box-color)')
+      expect(s).toMatchObject({ '--box-color': 'var(--color-focused-box)' })
+      expect(s.borderLeftColor).toBe('var(--color-band-primary)')
+      expect(s.borderRightColor).toBe('var(--color-band-primary)')
+    })
+
+    it('bands all four sides of the focused box\'s own center cell, which has no red edge at all', () => {
+      // row 1, col 1 is box 0's center — never gets a red border on any
+      // side, so there's nothing for the band color to compete with.
+      const s = style({ ...baseCell, box: 0 }, 1, 1, 1, 7, 0)
+      expect(s.borderTopColor).toBe('var(--color-band-primary)')
+      expect(s.borderLeftColor).toBe('var(--color-band-primary)')
+      expect(s.borderBottomColor).toBe('var(--color-band-primary)')
+      expect(s.borderRightColor).toBe('var(--color-band-primary)')
+    })
+
+    it('still bands a cell in the focused row/column that is outside the focused box, unaffected by red', () => {
+      // row 1, col 7: row%3=1 so top/bottom aren't true box edges regardless
+      // of which box is focused — a clean non-edge side to check band color on.
+      const s = style({ ...baseCell, box: 5 }, 1, 7, 1, 7, 0) // box 0 focused, this cell is box 5
+      expect(s.borderTopColor).toBe('var(--color-band-primary)')
     })
   })
 })

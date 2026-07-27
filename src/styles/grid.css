@@ -21,11 +21,11 @@
   justify-content: center;
   /* --digit-bg/--digit-ink are set inline per cell (cellStyle.ts) from the
      cell's value; empty cells fall back to the normal surface/text pair.
-     The box-outline edge color is also set inline, as a real `border` (not
-     box-shadow) — an inset box-shadow is clipped to the padding box, so it
+     The box-outline edge color and the row/column band are both set
+     inline too, as per-side `border` colors — an inset box-shadow (used
+     only for the selected-cell ring) is clipped to the padding box, so it
      can never visually collide with the border regardless of what else is
-     going on. The selected ring / same-digit highlight ring / focused
-     row-column band are the inline box-shadow, computed there too. */
+     going on. */
   background: var(--digit-bg, var(--color-surface));
   color: var(--digit-ink, var(--color-text));
   font-size: calc(var(--cell-size) * 0.64);
@@ -36,15 +36,15 @@
 }
 
 .sudoku-cell--given {
-  font-weight: 700;
+  font-weight: 800;
 }
 
 .sudoku-cell--player {
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .sudoku-cell--hinted {
-  font-weight: 600;
+  font-weight: 700;
   font-style: italic;
 }
 
