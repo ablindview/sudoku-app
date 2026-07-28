@@ -129,6 +129,19 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return { ...state, elapsedSeconds: state.elapsedSeconds + 1 }
     }
 
+    // Pausing only from 'playing' (not 'idle'/'solved') means every other
+    // action's existing `state.status !== 'playing'` guard already blocks
+    // all gameplay input for free once paused — nothing else to change.
+    case 'PAUSE': {
+      if (state.status !== 'playing') return state
+      return { ...state, status: 'paused' }
+    }
+
+    case 'RESUME': {
+      if (state.status !== 'paused') return state
+      return { ...state, status: 'playing' }
+    }
+
     default:
       return state
   }

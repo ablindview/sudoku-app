@@ -1,4 +1,4 @@
-import { useMemo, useRef, type ChangeEvent, type KeyboardEvent } from 'react'
+import { useEffect, useMemo, useRef, type ChangeEvent, type KeyboardEvent } from 'react'
 import { boxOf, toIndex, toRowCol } from '../../engine/board'
 import { useAnnouncer } from '../../a11y/useAnnouncer'
 import { useGameDispatch, useGameState } from '../../game/useGame'
@@ -24,6 +24,19 @@ export function GridInputTable() {
   const announce = useAnnouncer()
   const { settings } = useSettings()
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
+  const previousStatus = useRef(state.status)
+
+  // Resuming from pause unmounts PauseOverlay's own (auto-focused) Resume
+  // button — the browser drops focus to <body> with no built-in recovery.
+  // Restore it to the cell the player had selected rather than stranding
+  // keyboard/SR users at the top of the page (mirrors GridA11yGrid's fix).
+  useEffect(() => {
+    if (previousStatus.current === 'paused' && state.status === 'playing') {
+      const index = state.selectedIndex ?? 0
+      inputRefs.current[index]?.focus()
+    }
+    previousStatus.current = state.status
+  }, [state.status, state.selectedIndex])
 
   function handleChange(index: number, event: ChangeEvent<HTMLInputElement>) {
     const raw = event.target.value
@@ -106,6 +119,7 @@ export function GridInputTable() {
               else if (cell.isHinted) classNames.push('sudoku-cell--hinted')
               else if (cell.value !== 0) classNames.push('sudoku-cell--player')
               if (cell.hasConflict) classNames.push('sudoku-cell--conflict')
+              if (cell.isDigitComplete) classNames.push('sudoku-cell--complete')
 
               return (
                 <td

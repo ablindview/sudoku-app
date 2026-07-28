@@ -72,6 +72,11 @@
   --color-highlight-bg: #000000;
   --color-highlight-text: #ffffff;
 
+  /* A completed digit (all 9 placed correctly) drops its identity color and
+     shows in this red instead — chosen to clear 4.5:1 text contrast against
+     the plain --color-surface it falls back to (verified: 4.81:1). */
+  --color-complete-text: #e60000;
+
   /* Per-digit identity colors (1-9): validated categorical palette, boosted
      to near-maximum saturation (re-validated: lightness band, chroma floor,
      CVD separation, and normal-vision floor all still pass) so they read as
@@ -131,17 +136,24 @@
   --color-highlight-bg: #000000;
   --color-highlight-text: #ffffff;
 
+  /* Same reasoning as the light theme's --color-complete-text, but a
+     brighter red for this theme's darker surface (#232427) — verified
+     4.53:1 (#ff3b30, the same red used above for --color-focused-box, only
+     clears 4.38:1 as *text*, just under the 4.5:1 minimum, so this one is
+     a separate, slightly lighter value). */
+  --color-complete-text: #ff4438;
+
   /* Requested: every digit's own text reads as plain white in this theme,
      rather than the per-digit choice (mostly dark ink, chosen so text
      clears 4.5:1 against that digit's own bright fill) used everywhere
-     else. Consumed only for the normal (non-complete) case in
-     cellStyle.ts — the "digit complete" swap still uses each digit's own
-     --identity-N-ink unchanged, so that indicator's look isn't altered by
-     this. Only defined here (dark); the other themes fall back to their
-     existing per-digit ink. NOTE: white text against several of this
-     theme's own identity fills (the lighter/brighter ones) will read below
-     the usual 4.5:1 text-contrast minimum — an explicit, requested
-     trade-off (a uniform look over per-digit contrast), not an oversight. */
+     else. Consumed only for the normal (non-complete, non-highlighted)
+     case in cellStyle.ts — completed digits use --color-complete-text
+     above instead, so that indicator's look is unaffected by this. Only
+     defined here (dark); the other themes fall back to their existing
+     per-digit ink. NOTE: white text against several of this theme's own
+     identity fills (the lighter/brighter ones) will read below the usual
+     4.5:1 text-contrast minimum — an explicit, requested trade-off (a
+     uniform look over per-digit contrast), not an oversight. */
   --color-digit-text: #ffffff;
 
   --identity-1: #2585f9;
@@ -201,6 +213,11 @@
      than needing a new color at all. */
   --color-highlight-bg: #000000;
   --color-highlight-text: #ffffff;
+  /* No red here either — falls back to the theme's own --color-text (black),
+     identical to an ordinary given/player digit, so a completed digit is
+     distinguished only by the underline in grid.css (.sudoku-cell--complete)
+     instead — the one channel that isn't a color. */
+  --color-complete-text: var(--color-text);
 
   --identity-1: var(--color-surface);
   --identity-1-ink: var(--color-text);
@@ -254,6 +271,10 @@
      still stands out against that. */
   --color-highlight-bg: #ffffff;
   --color-highlight-text: #000000;
+  /* Same rationale as contrast-light: falls back to --color-text (white,
+     matching an ordinary digit here), distinguished only by the underline
+     in grid.css. */
+  --color-complete-text: var(--color-text);
 
   --identity-1: var(--color-surface);
   --identity-1-ink: var(--color-text);

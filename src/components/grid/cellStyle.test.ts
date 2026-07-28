@@ -41,14 +41,13 @@ describe('buildCellInlineStyle', () => {
     })
   })
 
-  it('swaps background and ink for a completed digit, guaranteeing the same contrast either way', () => {
+  it('drops the identity background and shows red ink for a completed digit', () => {
     const normal = style({ ...baseCell, value: 5 }, 0, 0)
     expect(normal).toMatchObject({ '--digit-bg': 'var(--identity-5)' })
 
     const complete = style({ ...baseCell, value: 5, isDigitComplete: true }, 0, 0)
-    // Deliberately the plain per-digit ink, not --color-digit-text — the
-    // "digit complete" look is unaffected by the dark-theme text override.
-    expect(complete).toMatchObject({ '--digit-bg': 'var(--identity-5-ink)', '--digit-ink': 'var(--identity-5)' })
+    expect(complete).not.toHaveProperty('--digit-bg')
+    expect(complete).toMatchObject({ '--digit-ink': 'var(--color-complete-text)' })
   })
 
   describe('box edge (uniform neutral border, no per-box hue)', () => {
@@ -80,10 +79,10 @@ describe('buildCellInlineStyle', () => {
       expect(s.borderTopColor).toBe('var(--color-border)')
     })
 
-    it('is 8px wide on a non-focused box-boundary side', () => {
+    it('is 12px wide on a non-focused box-boundary side', () => {
       const s = style(baseCell, 0, 0, null, null, null)
-      expect(s.borderTopWidth).toBe('8px')
-      expect(s.borderLeftWidth).toBe('8px')
+      expect(s.borderTopWidth).toBe('12px')
+      expect(s.borderLeftWidth).toBe('12px')
     })
 
     it('gives non-edge sides the normal 3px width', () => {
@@ -93,7 +92,7 @@ describe('buildCellInlineStyle', () => {
     })
   })
 
-  describe('focused box (bright red override of --box-color, thickened to 10px)', () => {
+  describe('focused box (bright red override of --box-color, thickened to 14px)', () => {
     it('overrides --box-color to the focused-box red for a cell in the focused box', () => {
       const s = style({ ...baseCell, box: 4 }, 4, 4, null, null, 4)
       expect(s).toMatchObject({ '--box-color': 'var(--color-focused-box)' })
@@ -109,16 +108,16 @@ describe('buildCellInlineStyle', () => {
       expect(s).toMatchObject({ '--box-color': 'var(--color-box-border)' })
     })
 
-    it('thickens the true box-boundary sides to 10px when focused, vs 8px normally', () => {
+    it('thickens the true box-boundary sides to 14px when focused, vs 12px normally', () => {
       // Needed because in the two contrast themes, --color-focused-box and
       // --color-box-border are necessarily the same value (see theme.css) —
       // width is the only channel left to differentiate the focused box there.
       const focused = style({ ...baseCell, box: 0 }, 0, 0, null, null, 0)
-      expect(focused.borderTopWidth).toBe('10px')
-      expect(focused.borderLeftWidth).toBe('10px')
+      expect(focused.borderTopWidth).toBe('14px')
+      expect(focused.borderLeftWidth).toBe('14px')
 
       const unfocused = style({ ...baseCell, box: 0 }, 0, 0, null, null, null)
-      expect(unfocused.borderTopWidth).toBe('8px')
+      expect(unfocused.borderTopWidth).toBe('12px')
     })
 
     it('applies to the selected cell too — the focused box includes the selected cell itself', () => {

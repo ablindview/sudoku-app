@@ -21,6 +21,7 @@ export function GridA11yGrid() {
 
   const selectedIndex = state.selectedIndex ?? 0
   const previousSelectedIndex = useRef<number | null>(null)
+  const previousStatus = useRef(state.status)
 
   // Move DOM focus to match selectedIndex after keyboard nav or a click, but
   // don't steal focus on initial mount just because a cell is selected.
@@ -32,6 +33,18 @@ export function GridA11yGrid() {
     }
     previousSelectedIndex.current = selectedIndex
   }, [selectedIndex])
+
+  // Resuming from pause unmounts PauseOverlay's own (auto-focused) Resume
+  // button — the browser drops focus to <body> with no built-in recovery,
+  // same class of problem as Toolbar.tsx's solved-state handoff. Restore it
+  // to the cell the player had selected rather than stranding keyboard/SR
+  // users at the top of the page.
+  useEffect(() => {
+    if (previousStatus.current === 'paused' && state.status === 'playing') {
+      cellRefs.current[selectedIndex]?.focus()
+    }
+    previousStatus.current = state.status
+  }, [state.status, selectedIndex])
 
   function handleKeyDown(event: KeyboardEvent<HTMLDivElement>, index: number) {
     // Never hijack browser/OS shortcuts (Cmd/Ctrl+0 zoom reset, Cmd/Ctrl+1-9
@@ -94,6 +107,7 @@ export function GridA11yGrid() {
             else if (cell.isHinted) classNames.push('sudoku-cell--hinted')
             else if (cell.value !== 0) classNames.push('sudoku-cell--player')
             if (cell.hasConflict) classNames.push('sudoku-cell--conflict')
+            if (cell.isDigitComplete) classNames.push('sudoku-cell--complete')
 
             return (
               <div

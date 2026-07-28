@@ -47,17 +47,19 @@ import type { CellDisplayState } from './cellLabel'
  * cells; this sidesteps that class of bug entirely instead of re-ordering
  * around it.)
  *
- * Box-edge width is 8px normally, 10px when focused (see below for why the
- * focused box needs that second, non-color channel) — 8px is also wide
+ * Box-edge width is 12px normally, 14px when focused (see below for why the
+ * focused box needs that second, non-color channel) — 12px is also wide
  * enough on its own to read as visible separation between boxes, per an
  * explicit request to differentiate boxes by space instead of by per-box
- * color. Banded sides are thickened to 4px, matching the visual weight the
- * band had as a 4px outline previously. NOTE: since a single fixed color
- * cannot clear 3:1 contrast against all 9 identity fill colors (the same
- * reason the selected-cell ring uses a two-tone pair), both
- * `--color-band-primary` and `--color-focused-box` will read poorly against
- * some digits' own fill — an explicit, informed trade-off (uniformity over
- * guaranteed per-cell contrast), not an oversight.
+ * color (bumped up once already from an initial 8px/10px after a follow-up
+ * "a little more space" request). Banded sides are thickened to 4px,
+ * matching the visual weight the band had as a 4px outline previously.
+ * NOTE: since a single fixed color cannot clear 3:1 contrast against all 9
+ * identity fill colors (the same reason the selected-cell ring uses a
+ * two-tone pair), both `--color-band-primary` and `--color-focused-box`
+ * will read poorly against some digits' own fill — an explicit, informed
+ * trade-off (uniformity over guaranteed per-cell contrast), not an
+ * oversight.
  *
  * Same-digit highlight is NOT a ring/outline/border at all: a matching
  * cell drops its identity color entirely and shows a flat
@@ -67,6 +69,21 @@ import type { CellDisplayState } from './cellLabel'
  * from a "highlighted" one). This is text-level contrast (aiming for 21:1,
  * not just the 3:1 a border needs), so it's strictly more readable than
  * the ring it replaced, on top of being simpler.
+ *
+ * A completed digit (all 9 solution cells for that value correctly filled)
+ * similarly drops its identity color rather than swapping it: no
+ * `--digit-bg` is set at all, falling back to the same plain
+ * `--color-surface` an empty cell uses, and `--digit-ink` becomes
+ * `--color-complete-text` — a theme-specific red chosen to clear 4.5:1
+ * text contrast against that surface (an earlier bg/ink *swap* design
+ * guaranteed contrast automatically via symmetry, but still used each
+ * digit's own identity color; removing color entirely was requested
+ * instead). The two contrast themes fall back to their own `--color-text`
+ * here (introducing red would break their colorless design the same way it
+ * would for the focused box or highlight), so a completed digit is
+ * distinguished there by `text-decoration: underline` instead (see
+ * `.sudoku-cell--complete` in grid.css) — another non-color channel, same
+ * principle as the focused box's extra thickness above.
  *
  * "Selected" and "in the focused row/column" are mutually exclusive in
  * valid, non-conflicting play — and so is "same-digit match" with either of
@@ -93,16 +110,12 @@ export function buildCellInlineStyle(
       style['--digit-ink'] = 'var(--color-highlight-text)'
     } else if (cell.isDigitComplete) {
       // Once a digit has all 9 of its solution cells correctly filled,
-      // there's nowhere left to place another one — swap which of the pair
-      // is the background and which is the text, so completed digits read
-      // as clearly different at a glance. Contrast ratio is symmetric
-      // (contrast(A,B) == contrast(B,A)), so this is guaranteed to stay
-      // exactly as readable as the normal look, for every digit, with no
-      // separate contrast check needed. Deliberately uses each digit's own
-      // --identity-N-ink here, NOT --color-digit-text below — this
-      // indicator's look is unaffected by that dark-theme-only override.
-      style['--digit-bg'] = `var(--identity-${cell.value}-ink)`
-      style['--digit-ink'] = `var(--identity-${cell.value})`
+      // there's nowhere left to place another one — drop the identity color
+      // entirely (no --digit-bg set, so it falls back to the plain
+      // --color-surface every empty cell already uses) and show the digit
+      // in --color-complete-text instead. See the module doc for the
+      // contrast reasoning and the contrast-theme fallback.
+      style['--digit-ink'] = 'var(--color-complete-text)'
     } else {
       style['--digit-bg'] = `var(--identity-${cell.value})`
       // --color-digit-text is only defined in the dark theme (a flat white,
@@ -131,7 +144,7 @@ export function buildCellInlineStyle(
   // conflict marker's dashed border (see grid.css).
   const isFocusedBox = focusedBox !== null && cell.box === focusedBox
   style['--box-color'] = isFocusedBox ? 'var(--color-focused-box)' : 'var(--color-box-border)'
-  const EDGE_WIDTH = isFocusedBox ? '10px' : '8px'
+  const EDGE_WIDTH = isFocusedBox ? '14px' : '12px'
   const BAND_WIDTH = '4px'
 
   // The row band colors only top+bottom (never left/right); the column band

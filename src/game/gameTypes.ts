@@ -1,6 +1,6 @@
 import type { Board, CellValue, Difficulty, Digit } from '../engine/types'
 
-export type GameStatus = 'idle' | 'playing' | 'solved'
+export type GameStatus = 'idle' | 'playing' | 'paused' | 'solved'
 
 export interface GameState {
   puzzle: Board
@@ -27,6 +27,8 @@ export type GameAction =
   | { type: 'TOGGLE_NOTES_MODE' }
   | { type: 'APPLY_HINT'; index: number }
   | { type: 'TICK' }
+  | { type: 'PAUSE' }
+  | { type: 'RESUME' }
 
 export const noteHasDigit = (notesMask: number, digit: Digit): boolean => (notesMask & (1 << digit)) !== 0
 

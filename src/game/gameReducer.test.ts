@@ -152,6 +152,43 @@ describe('TICK', () => {
   })
 })
 
+describe('PAUSE / RESUME', () => {
+  it('pauses an active game', () => {
+    const state = gameReducer(loaded(), { type: 'PAUSE' })
+    expect(state.status).toBe('paused')
+  })
+
+  it('is a no-op when not playing (e.g. already idle)', () => {
+    const idle = createIdleState()
+    expect(gameReducer(idle, { type: 'PAUSE' })).toBe(idle)
+  })
+
+  it('is a no-op pausing an already-paused game', () => {
+    const paused = gameReducer(loaded(), { type: 'PAUSE' })
+    expect(gameReducer(paused, { type: 'PAUSE' })).toBe(paused)
+  })
+
+  it('resumes a paused game back to playing', () => {
+    const paused = gameReducer(loaded(), { type: 'PAUSE' })
+    const resumed = gameReducer(paused, { type: 'RESUME' })
+    expect(resumed.status).toBe('playing')
+  })
+
+  it('is a no-op resuming a game that is not paused', () => {
+    const playing = loaded()
+    expect(gameReducer(playing, { type: 'RESUME' })).toBe(playing)
+  })
+
+  it('blocks gameplay actions while paused, same as every other non-playing status', () => {
+    const paused = gameReducer(loaded(), { type: 'PAUSE' })
+    expect(gameReducer(paused, { type: 'SET_VALUE', index: 1, value: 2 })).toBe(paused)
+    expect(gameReducer(paused, { type: 'CLEAR_CELL', index: 1 })).toBe(paused)
+    expect(gameReducer(paused, { type: 'TOGGLE_NOTE', index: 1, digit: 3 as Digit })).toBe(paused)
+    expect(gameReducer(paused, { type: 'APPLY_HINT', index: 1 })).toBe(paused)
+    expect(gameReducer(paused, { type: 'TICK' })).toBe(paused)
+  })
+})
+
 describe('solved status', () => {
   it('transitions to solved when the board is complete with no conflicts', () => {
     let state = loaded()

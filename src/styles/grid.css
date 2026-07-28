@@ -70,6 +70,24 @@
   pointer-events: none;
 }
 
+/* Completed-digit indicator (see cellStyle.ts) in the two contrast themes:
+   --color-complete-text there is just the theme's own --color-text (no red,
+   consistent with every other feature's colorless design in those themes),
+   so an underline is the only thing that actually distinguishes a completed
+   digit from an ordinary one. The descendant `.sudoku-input` selector
+   targets Mode B's real <input> specifically — text-decoration on its
+   parent <td> isn't guaranteed to render through a form control's own text
+   in every engine, so this covers that case explicitly rather than relying
+   on inheritance. */
+[data-theme='contrast-light'] .sudoku-cell--complete,
+[data-theme='contrast-dark'] .sudoku-cell--complete,
+[data-theme='contrast-light'] .sudoku-cell--complete .sudoku-input,
+[data-theme='contrast-dark'] .sudoku-cell--complete .sudoku-input {
+  text-decoration: underline;
+  text-decoration-thickness: 3px;
+  text-underline-offset: 3px;
+}
+
 .sudoku-cell-notes {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -124,4 +142,47 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
+}
+
+.sudoku-grid-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+/* Inverted from the page's own text/surface pair — guaranteed strong
+   contrast in every theme by construction (they're each theme's own two
+   opposite-polarity colors), without implying "error" the way reusing the
+   conflict-red pair would. */
+.notes-mode-banner {
+  display: block;
+  margin: 0 0 0.75rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--color-text);
+  color: var(--color-surface);
+  font-weight: 700;
+  border-radius: 0.25rem;
+}
+
+/* Fully opaque (not translucent) so the puzzle underneath is genuinely not
+   visible, not just dimmed — that's the whole point of pausing. Sized via
+   `inset: 0` against the wrapper above rather than the viewport, so it
+   covers exactly the grid and nothing else (Header/Toolbar/StatusBar, in
+   particular the Resume/New Game controls, stay reachable). */
+.pause-overlay {
+  position: absolute;
+  inset: 0;
+  background: var(--color-surface);
+  border: 3px solid var(--color-box-border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.pause-overlay-text {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--color-text);
 }
