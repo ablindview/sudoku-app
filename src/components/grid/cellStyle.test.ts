@@ -79,10 +79,10 @@ describe('buildCellInlineStyle', () => {
       expect(s.borderTopColor).toBe('var(--color-border)')
     })
 
-    it('is 10px wide on a non-focused box-boundary side', () => {
+    it('is 5px wide on a non-focused box-boundary side', () => {
       const s = style(baseCell, 0, 0, null, null, null)
-      expect(s.borderTopWidth).toBe('10px')
-      expect(s.borderLeftWidth).toBe('10px')
+      expect(s.borderTopWidth).toBe('5px')
+      expect(s.borderLeftWidth).toBe('5px')
     })
 
     it('gives non-edge sides the normal 3px width', () => {
@@ -92,7 +92,23 @@ describe('buildCellInlineStyle', () => {
     })
   })
 
-  describe('focused box (bright red override of --box-color, thickened to 12px)', () => {
+  describe('box checkerboard (per-box alternating purple/alt color)', () => {
+    it('assigns purple to the four corner boxes and the center box (even row+col parity)', () => {
+      for (const box of [0, 2, 4, 6, 8]) {
+        const s = style({ ...baseCell, box }, 0, 0)
+        expect(s).toMatchObject({ '--box-color': 'var(--color-box-border)' })
+      }
+    })
+
+    it('assigns the alt color to the four edge-middle boxes (odd row+col parity)', () => {
+      for (const box of [1, 3, 5, 7]) {
+        const s = style({ ...baseCell, box }, 0, 0)
+        expect(s).toMatchObject({ '--box-color': 'var(--color-box-border-alt)' })
+      }
+    })
+  })
+
+  describe('focused box (bright red override of --box-color, thickened to 7px)', () => {
     it('overrides --box-color to the focused-box red for a cell in the focused box', () => {
       const s = style({ ...baseCell, box: 4 }, 4, 4, null, null, 4)
       expect(s).toMatchObject({ '--box-color': 'var(--color-focused-box)' })
@@ -108,16 +124,16 @@ describe('buildCellInlineStyle', () => {
       expect(s).toMatchObject({ '--box-color': 'var(--color-box-border)' })
     })
 
-    it('thickens the true box-boundary sides to 12px when focused, vs 10px normally', () => {
+    it('thickens the true box-boundary sides to 7px when focused, vs 5px normally', () => {
       // Needed because in the two contrast themes, --color-focused-box and
       // --color-box-border are necessarily the same value (see theme.css) —
       // width is the only channel left to differentiate the focused box there.
       const focused = style({ ...baseCell, box: 0 }, 0, 0, null, null, 0)
-      expect(focused.borderTopWidth).toBe('12px')
-      expect(focused.borderLeftWidth).toBe('12px')
+      expect(focused.borderTopWidth).toBe('7px')
+      expect(focused.borderLeftWidth).toBe('7px')
 
       const unfocused = style({ ...baseCell, box: 0 }, 0, 0, null, null, null)
-      expect(unfocused.borderTopWidth).toBe('10px')
+      expect(unfocused.borderTopWidth).toBe('5px')
     })
 
     it('applies to the selected cell too — the focused box includes the selected cell itself', () => {

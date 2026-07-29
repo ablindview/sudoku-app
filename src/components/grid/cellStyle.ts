@@ -48,12 +48,8 @@ import type { CellDisplayState } from './cellLabel'
  * around it.)
  *
  * Box-edge width went through several rounds of adjustment (8px/10px, then
- * 12px/14px, then briefly down to a thin 2px/4px once `--color-box-border`
- * switched from a neutral gray to a bright purple — see theme.css — on the
- * theory that color contrast alone could carry the separation) before
- * landing on 10px/12px: purple stays, but back to a width that's
- * comfortably visible on its own too, not relying on color as the sole
- * channel. Banded sides stay at 4px, matching the visual weight the band
+ * 12px/14px, then a thin 2px/4px, then back up to 10px/12px) before landing
+ * on 5px/7px. Banded sides stay at 4px, matching the visual weight the band
  * had as an outline previously.
  * NOTE: since a single fixed color cannot clear 3:1 contrast against all 9
  * identity fill colors (the same reason the selected-cell ring uses a
@@ -126,26 +122,37 @@ export function buildCellInlineStyle(
     }
   }
 
-  // Non-focused boxes use --color-box-border, the theme's existing dedicated
-  // box-boundary token (already used for the grid's own outer border) — a
-  // bright purple in light/dark (requested explicitly so the boxes are
-  // differentiated by color, not just width) with no per-box hue. (An
-  // earlier version tried blending non-focused edges into --color-bg to
-  // read as true empty space, but caught in accessibility review:
-  // --color-bg and --color-surface — the cell's own fill — are only ~1.1:1
-  // apart in light/dark, and identical in both contrast themes — invisible,
-  // not a gap, defeating the entire point of "differentiate the boxes.")
-  // The focused box overrides to bright red — except in the two contrast
-  // themes, where --color-focused-box necessarily equals --color-box-border
+  // Non-focused boxes checkerboard between --color-box-border (purple) and
+  // --color-box-border-alt (white in dark theme; a near-black instead of
+  // literal white in light theme, since white-on-white would be invisible
+  // there — same "flip the two-tone pair per theme" approach already used
+  // for --color-ring-primary/-secondary and --color-band-primary) by box
+  // parity: (boxRow + boxCol) % 2 — box 0 (top-left) is purple, box 1
+  // (top-middle) is the alt color, box 2 (top-right) is purple, and so on,
+  // explicitly requested as a 9-box checkerboard rather than one uniform
+  // border color. The two contrast themes define --color-box-border-alt as
+  // the SAME value as --color-box-border (both just their one neutral), so
+  // the checkerboard collapses to a no-op there — introducing purple would
+  // break their colorless design, and they already have no second neutral
+  // to alternate with without inventing one. The focused box overrides to
+  // bright red regardless of parity — except in the two contrast themes,
+  // where --color-focused-box necessarily equals --color-box-border
   // (neither can introduce a distinguishing hue without breaking their
   // whole colorless design), so color alone carries no signal there. The
-  // edge is thickened when focused (12px vs the normal 10px) as a second,
+  // edge is thickened when focused (7px vs the normal 5px) as a second,
   // non-color channel that covers exactly that case, and simply reinforces
   // the color difference everywhere else — never rely on a single channel,
   // same principle as the conflict marker's dashed border (see grid.css).
   const isFocusedBox = focusedBox !== null && cell.box === focusedBox
-  style['--box-color'] = isFocusedBox ? 'var(--color-focused-box)' : 'var(--color-box-border)'
-  const EDGE_WIDTH = isFocusedBox ? '12px' : '10px'
+  const boxRow = Math.floor(cell.box / 3)
+  const boxCol = cell.box % 3
+  const isEvenParityBox = (boxRow + boxCol) % 2 === 0
+  style['--box-color'] = isFocusedBox
+    ? 'var(--color-focused-box)'
+    : isEvenParityBox
+      ? 'var(--color-box-border)'
+      : 'var(--color-box-border-alt)'
+  const EDGE_WIDTH = isFocusedBox ? '7px' : '5px'
   const BAND_WIDTH = '4px'
 
   // The row band colors only top+bottom (never left/right); the column band
