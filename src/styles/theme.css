@@ -11,7 +11,11 @@
   --color-text: #1a1a1a;
   --color-text-muted: #5a5a5a;
   --color-border: #8a8a8a;
-  --color-box-border: #333333;
+  /* Bright purple, requested so the boxes are told apart by color, not just
+     width (the border is only 2px now — see cellStyle.ts). Verified 5.70:1
+     against --color-surface and 5.31:1 against --color-bg, both well past
+     the 3:1 a non-text UI boundary needs. */
+  --color-box-border: #7c3aed;
   --color-given-text: #1a1a1a;
   --color-player-text: #1258b8;
   --color-hint-text: #7a3fa0;
@@ -49,17 +53,17 @@
   --color-band-primary: #000000;
 
   /* Box edges no longer carry a per-box identity color (removed — see the
-     identity-color comment below); instead every box boundary is a plain,
-     wide border using --color-box-border (the theme's own dedicated
-     box-boundary token, already used for the grid's outer edge) — a single
-     neutral tone, no per-box hue, but genuinely visible with no selection
-     active. (An earlier version tried blending non-focused edges into
-     --color-bg to read as literal empty space, but --color-bg and
-     --color-surface — the cell's own fill — are only ~1.1:1 apart here,
+     identity-color comment below); instead every box boundary is a border
+     using --color-box-border (the theme's own dedicated box-boundary token,
+     already used for the grid's outer edge) — no per-box hue, but a bright
+     purple (see above) so it's genuinely visible with no selection active
+     even at a thin 2px. (An earlier version tried blending non-focused
+     edges into --color-bg to read as literal empty space, but --color-bg
+     and --color-surface — the cell's own fill — are only ~1.1:1 apart here,
      identical in the two contrast themes: invisible, not a gap, caught in
      accessibility review.) The currently focused box overrides that same
-     border to this bright red instead (also thickened slightly — see
-     cellStyle.ts, needed in the two contrast themes where color alone can't
+     border to this bright red instead (also thickened — see cellStyle.ts,
+     needed in the two contrast themes where color alone can't
      differentiate). */
   --color-focused-box: #e60000;
 
@@ -112,7 +116,10 @@
   --color-text: #f1f1f1;
   --color-text-muted: #b6b6b6;
   --color-border: #75767a;
-  --color-box-border: #d8d8d8;
+  /* Lighter violet than the light theme's, for visibility against this
+     theme's darker surface — same hue family as --color-box-border there.
+     Verified 5.70:1 against --color-surface and 6.53:1 against --color-bg. */
+  --color-box-border: #a78bfa;
   --color-given-text: #f1f1f1;
   --color-player-text: #7fb2ff;
   --color-hint-text: #d3a6ff;
