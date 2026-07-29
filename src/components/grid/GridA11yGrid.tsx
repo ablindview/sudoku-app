@@ -95,44 +95,50 @@ export function GridA11yGrid() {
   const completedDigits = useMemo(() => computeCompletedDigits(state), [state])
 
   return (
-    <div className="sudoku-grid" role="grid" aria-label="Sudoku puzzle, 9 by 9" aria-rowcount={9} aria-colcount={9}>
-      {ROWS.map((row) => (
-        <div key={row} role="row" aria-rowindex={row + 1} style={{ display: 'contents' }}>
-          {COLS.map((col) => {
-            const index = toIndex(row, col)
-            const cell = buildCellState(state, index, settings.autoCheckConflicts, highlightedValue, completedDigits)
+    <>
+      <p className="visually-hidden">
+        Use arrow keys to move between cells and type a digit 1-9 to fill one, or select a cell and use the number
+        pad below the grid; clear a cell with Backspace, Delete, or the number pad&apos;s Clear button.
+      </p>
+      <div className="sudoku-grid" role="grid" aria-label="Sudoku puzzle, 9 by 9" aria-rowcount={9} aria-colcount={9}>
+        {ROWS.map((row) => (
+          <div key={row} role="row" aria-rowindex={row + 1} style={{ display: 'contents' }}>
+            {COLS.map((col) => {
+              const index = toIndex(row, col)
+              const cell = buildCellState(state, index, settings.autoCheckConflicts, highlightedValue, completedDigits)
 
-            const classNames = ['sudoku-cell']
-            if (cell.isGiven) classNames.push('sudoku-cell--given')
-            else if (cell.isHinted) classNames.push('sudoku-cell--hinted')
-            else if (cell.value !== 0) classNames.push('sudoku-cell--player')
-            if (cell.hasConflict) classNames.push('sudoku-cell--conflict')
-            if (cell.isDigitComplete) classNames.push('sudoku-cell--complete')
+              const classNames = ['sudoku-cell']
+              if (cell.isGiven) classNames.push('sudoku-cell--given')
+              else if (cell.isHinted) classNames.push('sudoku-cell--hinted')
+              else if (cell.value !== 0) classNames.push('sudoku-cell--player')
+              if (cell.hasConflict) classNames.push('sudoku-cell--conflict')
+              if (cell.isDigitComplete) classNames.push('sudoku-cell--complete')
 
-            return (
-              <div
-                key={index}
-                ref={(el) => {
-                  cellRefs.current[index] = el
-                }}
-                role="gridcell"
-                aria-colindex={col + 1}
-                aria-selected={cell.isSelected}
-                aria-label={gridCellLabel(cell)}
-                tabIndex={index === selectedIndex ? 0 : -1}
-                data-row={row}
-                data-col={col}
-                className={classNames.join(' ')}
-                style={buildCellInlineStyle(cell, row, col, selectedRow, selectedCol, 'transparent', focusedBox)}
-                onClick={() => dispatch({ type: 'SELECT_CELL', index })}
-                onKeyDown={(event) => handleKeyDown(event, index)}
-              >
-                <CellVisual cell={cell} />
-              </div>
-            )
-          })}
-        </div>
-      ))}
-    </div>
+              return (
+                <div
+                  key={index}
+                  ref={(el) => {
+                    cellRefs.current[index] = el
+                  }}
+                  role="gridcell"
+                  aria-colindex={col + 1}
+                  aria-selected={cell.isSelected}
+                  aria-label={gridCellLabel(cell)}
+                  tabIndex={index === selectedIndex ? 0 : -1}
+                  data-row={row}
+                  data-col={col}
+                  className={classNames.join(' ')}
+                  style={buildCellInlineStyle(cell, row, col, selectedRow, selectedCol, 'transparent', focusedBox)}
+                  onClick={() => dispatch({ type: 'SELECT_CELL', index })}
+                  onKeyDown={(event) => handleKeyDown(event, index)}
+                >
+                  <CellVisual cell={cell} />
+                </div>
+              )
+            })}
+          </div>
+        ))}
+      </div>
+    </>
   )
 }

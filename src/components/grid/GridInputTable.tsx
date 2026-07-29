@@ -105,7 +105,8 @@ export function GridInputTable() {
     <table className="sudoku-input-grid">
       <caption className="visually-hidden">
         Sudoku puzzle. Tab through cells in reading order, or use arrow keys once a cell has focus. Type a digit 1-9
-        to fill a cell; clear it with Backspace or Delete.
+        to fill a cell, or select a cell and use the number pad below the grid; clear a cell with Backspace, Delete,
+        or the number pad&apos;s Clear button.
       </caption>
       <tbody>
         {ROWS.map((row) => (
@@ -134,7 +135,14 @@ export function GridInputTable() {
                       inputRefs.current[index] = el
                     }}
                     type="text"
-                    inputMode="numeric"
+                    // "none" tells mobile browsers not to pop up their own
+                    // on-screen keyboard — the NumberPad below the grid is
+                    // the intended tap target instead (requested explicitly:
+                    // the native keyboard was getting in the way). The input
+                    // stays a real, focusable, editable text field otherwise
+                    // — this only suppresses the IME/virtual-keyboard UI, it
+                    // doesn't block a physical keyboard or screen reader.
+                    inputMode="none"
                     maxLength={1}
                     className="sudoku-input"
                     value={cell.value !== 0 ? String(cell.value) : ''}

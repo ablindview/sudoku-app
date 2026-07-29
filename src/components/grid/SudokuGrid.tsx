@@ -2,6 +2,7 @@ import { useGameState } from '../../game/useGame'
 import { useSettings } from '../../settings/useSettings'
 import { GridA11yGrid } from './GridA11yGrid'
 import { GridInputTable } from './GridInputTable'
+import { NumberPad } from './NumberPad'
 import { PauseOverlay } from './PauseOverlay'
 import { useConflictAnnouncements } from './useConflictAnnouncements'
 
@@ -44,6 +45,7 @@ export function SudokuGrid() {
           by the overlay below. */}
       <div aria-hidden={isPaused} inert={isPaused || undefined}>
         {settings.gridMode === 'inputTable' ? <GridInputTable /> : <GridA11yGrid />}
+        <NumberPad />
       </div>
       {isPaused && <PauseOverlay />}
     </div>
