@@ -15,21 +15,24 @@
      width. Verified 5.70:1 against --color-surface and 5.31:1 against
      --color-bg, both well past the 3:1 a non-text UI boundary needs. */
   --color-box-border: #7c3aed;
-  /* The checkerboard's second color (see cellStyle.ts): requested as white,
-     but literal white/black is a hard no here — it's the exact color
-     --color-band-primary already uses for the selected row/column line
-     (caught in accessibility review: an alt-colored box's true edge and the
-     band's non-edge side can land on the same cell, and if both are pure
-     black they fuse into one line with no way to tell "box boundary" from
-     "row/column highlight" apart). First fix reused --color-border, but
-     that read as too washed-out ("difficult to see" — a follow-up request).
-     This is its own dedicated value instead — darker/bolder than
-     --color-border, tuned for roughly balanced separation from both
-     neighbors rather than favoring one: 4.61:1 against --color-surface
-     (up from 3.45 — the actual visibility fix) and 4.56:1 against
-     --color-band-primary (down from 6.08, but nowhere near the 1:1
-     collision this was fixing). */
-  --color-box-border-alt: #757575;
+  /* The checkerboard's second color (see cellStyle.ts). History: literal
+     white/black collided with --color-band-primary (the selected
+     row/column line); a plain gray fix ("--color-border") then read as too
+     washed-out. Requested as bright gold next — but a literal bright/pale
+     gold (e.g. #ffd700) hits the same wall pure white did: its luminance
+     is close enough to white that it clears only ~1.4-1.6:1 against this
+     theme's white --color-surface, i.e. it would nearly vanish. A deeper
+     amber-gold (~40° hue) fixed that, but landed almost exactly on
+     --identity-4's own hue/lightness (both ~40°, ~39-46% lightness) —
+     caught in accessibility review as a second, different collision: a
+     gold-bordered box next to a "4" filled in its own gold could read as
+     related when they aren't. This shifts hue to ~52° (true "gold" per
+     the CSS named color, versus the previous "dark goldenrod") and
+     lightness down to 29%, landing in the wide gap between --identity-4
+     (~40°) and --identity-3 (~158°) with real separation on both axes.
+     Clears 3.93:1 against --color-surface and 5.35:1 against
+     --color-band-primary. */
+  --color-box-border-alt: #948000;
   --color-given-text: #1a1a1a;
   --color-player-text: #1258b8;
   --color-hint-text: #7a3fa0;
@@ -134,16 +137,15 @@
      theme's darker surface — same hue family as --color-box-border there.
      Verified 5.70:1 against --color-surface and 6.53:1 against --color-bg. */
   --color-box-border: #a78bfa;
-  /* The checkerboard's second color (see cellStyle.ts): requested as white,
-     but literal white is the exact color --color-band-primary already uses
-     for the selected row/column line here — same collision as the light
-     theme (see its comment above). First fix reused --color-border, but
-     that read as too washed-out on this darker surface ("difficult to
-     see" — a follow-up request). This is its own dedicated, lighter value
-     instead: 4.16:1 against --color-surface (up from 3.42 — the actual
-     visibility fix) and 3.73:1 against --color-band-primary (down from
-     4.54, but nowhere near the 1:1 collision this was fixing). */
-  --color-box-border-alt: #83848a;
+  /* The checkerboard's second color (see cellStyle.ts) — same history and
+     same reasoning as the light theme's comment above, including the
+     --identity-4 hue/lightness collision caught in accessibility review.
+     Same value as the light theme (a single value works for both, since
+     the bottleneck in both directions is separation from white — this
+     theme's --color-band-primary and the light theme's --color-surface
+     are both literally #ffffff). Clears 3.95:1 against --color-surface
+     and 3.93:1 against --color-band-primary. */
+  --color-box-border-alt: #948000;
   --color-given-text: #f1f1f1;
   --color-player-text: #7fb2ff;
   --color-hint-text: #d3a6ff;
