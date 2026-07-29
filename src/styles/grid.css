@@ -88,6 +88,16 @@
   text-underline-offset: 3px;
 }
 
+/* Same reasoning, for NumberPad's own black-bg/red-text completed-digit
+   treatment (see NumberPad.tsx) — a <button> renders its text directly, no
+   descendant selector needed. */
+[data-theme='contrast-light'] .number-pad-button--complete,
+[data-theme='contrast-dark'] .number-pad-button--complete {
+  text-decoration: underline;
+  text-decoration-thickness: 3px;
+  text-underline-offset: 3px;
+}
+
 .sudoku-cell-notes {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

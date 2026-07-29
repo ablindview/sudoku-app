@@ -1,7 +1,8 @@
-import type { CSSProperties } from 'react'
+import { useMemo, type CSSProperties } from 'react'
 import { useAnnouncer } from '../../a11y/useAnnouncer'
 import { ALL_DIGITS } from '../../engine/types'
 import { useGameDispatch, useGameState } from '../../game/useGame'
+import { computeCompletedDigits } from './completedDigits'
 
 /**
  * A persistent, tap-only digit entry row below the grid — added so touch
@@ -12,6 +13,15 @@ import { useGameDispatch, useGameState } from '../../game/useGame'
  * number-to-color association a player builds up from the grid itself
  * carries straight over to this pad instead of introducing a second,
  * unrelated palette to learn.
+ *
+ * Once a digit is complete (all 9 solution cells correctly filled — see
+ * completedDigits.ts), its button switches to a dedicated black
+ * background/red text pair instead — requested explicitly, distinct from
+ * the grid's own plain-surface/red treatment for the same state (see
+ * cellStyle.ts) since a pad button has no "empty cell" surface to fall
+ * back to. The two contrast themes no-op this (see theme.css) and rely on
+ * the underline below instead, same principle as the grid's own
+ * .sudoku-cell--complete.
  *
  * Disabling: the whole pad goes `inert` for free while paused, since it's
  * rendered inside the same aria-hidden/inert wrapper as the grid in
@@ -28,6 +38,7 @@ export function NumberPad() {
   const state = useGameState()
   const dispatch = useGameDispatch()
   const announce = useAnnouncer()
+  const completedDigits = useMemo(() => computeCompletedDigits(state), [state])
 
   const index = state.selectedIndex
   const canEdit = index !== null && !state.givenMask[index]
@@ -51,22 +62,31 @@ export function NumberPad() {
   return (
     <fieldset className="number-pad">
       <legend className="visually-hidden">Number pad</legend>
-      {ALL_DIGITS.map((digit) => (
-        <button
-          key={digit}
-          type="button"
-          className="number-pad-button"
-          style={
-            {
-              '--digit-bg': `var(--identity-${digit})`,
-              '--digit-ink': `var(--color-digit-text, var(--identity-${digit}-ink))`,
-            } as CSSProperties
-          }
-          onClick={() => handleDigit(digit)}
-        >
-          {digit}
-        </button>
-      ))}
+      {ALL_DIGITS.map((digit) => {
+        const isComplete = completedDigits.has(digit)
+        return (
+          <button
+            key={digit}
+            type="button"
+            className={isComplete ? 'number-pad-button number-pad-button--complete' : 'number-pad-button'}
+            style={
+              isComplete
+                ? ({
+                    '--digit-bg': 'var(--color-complete-pad-bg)',
+                    '--digit-ink': 'var(--color-complete-pad-text)',
+                  } as CSSProperties)
+                : ({
+                    '--digit-bg': `var(--identity-${digit})`,
+                    '--digit-ink': `var(--color-digit-text, var(--identity-${digit}-ink))`,
+                  } as CSSProperties)
+            }
+            aria-label={isComplete ? `${digit}, digit complete` : undefined}
+            onClick={() => handleDigit(digit)}
+          >
+            {digit}
+          </button>
+        )
+      })}
       <button type="button" className="number-pad-button number-pad-clear" onClick={handleClear}>
         Clear
       </button>

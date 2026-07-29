@@ -98,6 +98,21 @@
      the plain --color-surface it falls back to (verified: 4.81:1). */
   --color-complete-text: #e60000;
 
+  /* The same "digit complete" state, but for a NumberPad button (requested
+     explicitly as black background / red text, rather than reusing the
+     grid's own plain-surface treatment above). Literal black regardless of
+     theme — verified 19.58:1 against this theme's own --color-bg, so the
+     button reads as a clear, deliberate block rather than blending in.
+     --color-complete-pad-text is a single shared red (not two per-theme
+     reds like --color-complete-text above) because the background it sits
+     on is now the same literal black in both light and dark, not each
+     theme's own --color-surface — the light theme's own red
+     (--color-complete-text, #e60000) only clears 4.36:1 against pure
+     black, just under the 4.5:1 minimum, so this needed its own value
+     rather than reusing that one. Verified 6.14:1 against black. */
+  --color-complete-pad-bg: #000000;
+  --color-complete-pad-text: #ff4438;
+
   /* Per-digit identity colors (1-9): validated categorical palette, boosted
      to near-maximum saturation (re-validated: lightness band, chroma floor,
      CVD separation, and normal-vision floor all still pass) so they read as
@@ -175,6 +190,12 @@
      clears 4.38:1 as *text*, just under the 4.5:1 minimum, so this one is
      a separate, slightly lighter value). */
   --color-complete-text: #ff4438;
+
+  /* NumberPad's own digit-complete treatment (black bg / red text) — same
+     values as the light theme, see its comment for why this is one shared
+     pair rather than two per-theme reds. */
+  --color-complete-pad-bg: #000000;
+  --color-complete-pad-text: #ff4438;
 
   /* Requested: every digit's own text reads as plain white in this theme,
      rather than the per-digit choice (mostly dark ink, chosen so text
@@ -255,6 +276,13 @@
      distinguished only by the underline in grid.css (.sudoku-cell--complete)
      instead — the one channel that isn't a color. */
   --color-complete-text: var(--color-text);
+  /* NumberPad's black-bg/red-text treatment is pure hue — no-op here (falls
+     back to the same --identity-N mapping every digit already uses in this
+     theme), distinguished only by the underline in grid.css
+     (.number-pad-button--complete), same reasoning as --color-complete-text
+     above. */
+  --color-complete-pad-bg: var(--color-surface);
+  --color-complete-pad-text: var(--color-text);
 
   --identity-1: var(--color-surface);
   --identity-1-ink: var(--color-text);
@@ -314,6 +342,9 @@
      matching an ordinary digit here), distinguished only by the underline
      in grid.css. */
   --color-complete-text: var(--color-text);
+  /* Same rationale as contrast-light: no-op, underline-only. */
+  --color-complete-pad-bg: var(--color-surface);
+  --color-complete-pad-text: var(--color-text);
 
   --identity-1: var(--color-surface);
   --identity-1-ink: var(--color-text);
