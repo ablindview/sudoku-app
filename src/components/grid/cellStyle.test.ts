@@ -79,10 +79,10 @@ describe('buildCellInlineStyle', () => {
       expect(s.borderTopColor).toBe('var(--color-border)')
     })
 
-    it('is 2px wide on a non-focused box-boundary side', () => {
+    it('is 10px wide on a non-focused box-boundary side', () => {
       const s = style(baseCell, 0, 0, null, null, null)
-      expect(s.borderTopWidth).toBe('2px')
-      expect(s.borderLeftWidth).toBe('2px')
+      expect(s.borderTopWidth).toBe('10px')
+      expect(s.borderLeftWidth).toBe('10px')
     })
 
     it('gives non-edge sides the normal 3px width', () => {
@@ -92,7 +92,7 @@ describe('buildCellInlineStyle', () => {
     })
   })
 
-  describe('focused box (bright red override of --box-color, thickened to 4px)', () => {
+  describe('focused box (bright red override of --box-color, thickened to 12px)', () => {
     it('overrides --box-color to the focused-box red for a cell in the focused box', () => {
       const s = style({ ...baseCell, box: 4 }, 4, 4, null, null, 4)
       expect(s).toMatchObject({ '--box-color': 'var(--color-focused-box)' })
@@ -108,16 +108,16 @@ describe('buildCellInlineStyle', () => {
       expect(s).toMatchObject({ '--box-color': 'var(--color-box-border)' })
     })
 
-    it('thickens the true box-boundary sides to 4px when focused, vs 2px normally', () => {
+    it('thickens the true box-boundary sides to 12px when focused, vs 10px normally', () => {
       // Needed because in the two contrast themes, --color-focused-box and
       // --color-box-border are necessarily the same value (see theme.css) —
       // width is the only channel left to differentiate the focused box there.
       const focused = style({ ...baseCell, box: 0 }, 0, 0, null, null, 0)
-      expect(focused.borderTopWidth).toBe('4px')
-      expect(focused.borderLeftWidth).toBe('4px')
+      expect(focused.borderTopWidth).toBe('12px')
+      expect(focused.borderLeftWidth).toBe('12px')
 
       const unfocused = style({ ...baseCell, box: 0 }, 0, 0, null, null, null)
-      expect(unfocused.borderTopWidth).toBe('2px')
+      expect(unfocused.borderTopWidth).toBe('10px')
     })
 
     it('applies to the selected cell too — the focused box includes the selected cell itself', () => {

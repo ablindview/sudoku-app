@@ -47,14 +47,14 @@ import type { CellDisplayState } from './cellLabel'
  * cells; this sidesteps that class of bug entirely instead of re-ordering
  * around it.)
  *
- * Box-edge width went through several rounds of "more space" requests
- * (8px/10px, then 12px/14px) before landing back at a thin 2px/4px — this
- * time with `--color-box-border` itself switched from a neutral gray to a
- * bright purple (see theme.css) so separation reads through color contrast
- * rather than sheer width. Banded sides stay at 4px, matching the visual
- * weight the band had as an outline previously; note that means the band is
- * now sometimes THICKER than an unfocused (2px) box edge — an accepted
- * consequence of the width request, not an oversight.
+ * Box-edge width went through several rounds of adjustment (8px/10px, then
+ * 12px/14px, then briefly down to a thin 2px/4px once `--color-box-border`
+ * switched from a neutral gray to a bright purple — see theme.css — on the
+ * theory that color contrast alone could carry the separation) before
+ * landing on 10px/12px: purple stays, but back to a width that's
+ * comfortably visible on its own too, not relying on color as the sole
+ * channel. Banded sides stay at 4px, matching the visual weight the band
+ * had as an outline previously.
  * NOTE: since a single fixed color cannot clear 3:1 contrast against all 9
  * identity fill colors (the same reason the selected-cell ring uses a
  * two-tone pair), both `--color-band-primary` and `--color-focused-box`
@@ -139,13 +139,13 @@ export function buildCellInlineStyle(
   // themes, where --color-focused-box necessarily equals --color-box-border
   // (neither can introduce a distinguishing hue without breaking their
   // whole colorless design), so color alone carries no signal there. The
-  // edge is thickened when focused (4px vs the normal 2px) as a second,
+  // edge is thickened when focused (12px vs the normal 10px) as a second,
   // non-color channel that covers exactly that case, and simply reinforces
   // the color difference everywhere else — never rely on a single channel,
   // same principle as the conflict marker's dashed border (see grid.css).
   const isFocusedBox = focusedBox !== null && cell.box === focusedBox
   style['--box-color'] = isFocusedBox ? 'var(--color-focused-box)' : 'var(--color-box-border)'
-  const EDGE_WIDTH = isFocusedBox ? '4px' : '2px'
+  const EDGE_WIDTH = isFocusedBox ? '12px' : '10px'
   const BAND_WIDTH = '4px'
 
   // The row band colors only top+bottom (never left/right); the column band
