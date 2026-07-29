@@ -21,11 +21,15 @@
      (caught in accessibility review: an alt-colored box's true edge and the
      band's non-edge side can land on the same cell, and if both are pure
      black they fuse into one line with no way to tell "box boundary" from
-     "row/column highlight" apart). Reusing --color-border instead — a
-     lighter neutral than either purple or black, already used elsewhere in
-     this app — stays clearly distinct from both: 6.08:1 against
-     --color-band-primary, 3.45:1 against --color-surface. */
-  --color-box-border-alt: var(--color-border);
+     "row/column highlight" apart). First fix reused --color-border, but
+     that read as too washed-out ("difficult to see" — a follow-up request).
+     This is its own dedicated value instead — darker/bolder than
+     --color-border, tuned for roughly balanced separation from both
+     neighbors rather than favoring one: 4.61:1 against --color-surface
+     (up from 3.45 — the actual visibility fix) and 4.56:1 against
+     --color-band-primary (down from 6.08, but nowhere near the 1:1
+     collision this was fixing). */
+  --color-box-border-alt: #757575;
   --color-given-text: #1a1a1a;
   --color-player-text: #1258b8;
   --color-hint-text: #7a3fa0;
@@ -133,10 +137,13 @@
   /* The checkerboard's second color (see cellStyle.ts): requested as white,
      but literal white is the exact color --color-band-primary already uses
      for the selected row/column line here — same collision as the light
-     theme (see its comment above), just with white/white instead of
-     black/black. --color-border stays clearly distinct from both: 4.54:1
-     against --color-band-primary, 3.42:1 against --color-surface. */
-  --color-box-border-alt: var(--color-border);
+     theme (see its comment above). First fix reused --color-border, but
+     that read as too washed-out on this darker surface ("difficult to
+     see" — a follow-up request). This is its own dedicated, lighter value
+     instead: 4.16:1 against --color-surface (up from 3.42 — the actual
+     visibility fix) and 3.73:1 against --color-band-primary (down from
+     4.54, but nowhere near the 1:1 collision this was fixing). */
+  --color-box-border-alt: #83848a;
   --color-given-text: #f1f1f1;
   --color-player-text: #7fb2ff;
   --color-hint-text: #d3a6ff;
