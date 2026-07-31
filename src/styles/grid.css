@@ -7,7 +7,13 @@
   display: inline-grid;
   grid-template-columns: repeat(9, var(--cell-size));
   grid-template-rows: repeat(9, var(--cell-size));
-  border: 3px solid var(--color-box-border);
+  /* Deliberately no container border. The perimeter cells already draw the
+     outermost edge themselves via cellStyle.ts (row%3==0/2, col%3==0/2 cover
+     rows/cols 0 and 8), in their own box's checkerboard color. A frame here
+     would sit *outside* that in one fixed color, so the gold boxes along the
+     edge — top-middle, mid-left, mid-right, bottom-middle — read as purple
+     from the outside. Reported directly: the outer color must match whichever
+     box it belongs to. */
   background: var(--color-border);
   gap: 1px;
 }
@@ -120,7 +126,7 @@
    modes share one theming story. */
 .sudoku-input-grid {
   border-collapse: collapse;
-  border: 3px solid var(--color-box-border);
+  /* No container border — see .sudoku-grid above for why. */
 }
 
 .sudoku-input-cell {
