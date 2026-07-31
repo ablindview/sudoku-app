@@ -238,6 +238,33 @@ describe('buildCellInlineStyle', () => {
       // left/right are neither a box edge nor part of the row band, so they
       // stay at the caller's non-edge color
       expect(s.borderLeftColor).toBe('transparent')
+      // the band would otherwise vanish entirely on the red top edge, since
+      // a border side can only be one color — the inset shadow adds it back
+      expect(s.boxShadow).toBe('inset 0 4px 0 0 var(--color-band-primary)')
+    })
+
+    it('adds the band back in as an inset strip on an ordinary (non-focused) box edge, where it would otherwise vanish', () => {
+      // col 3 is a box's left edge (col%3=0). Selecting that column means
+      // every cell in it has its left border permanently on --box-color,
+      // with no room for the band there — this is the bug report: "the
+      // outline does not show on the border side of a box".
+      const s = style(baseCell, 4, 3, null, 3)
+      expect(s.borderLeftColor).toBe('var(--box-color)')
+      expect(s).toMatchObject({ '--box-color': 'var(--color-box-border)' }) // unfocused, ordinary checkerboard color
+      expect(s.boxShadow).toBe('inset 4px 0 0 0 var(--color-band-primary)')
+    })
+
+    it('adds the band strip on the right for a box\'s right edge, and on top/bottom for a row band', () => {
+      const rightEdge = style(baseCell, 4, 2, null, 2) // col 2 is a box's right edge
+      expect(rightEdge.boxShadow).toBe('inset -4px 0 0 0 var(--color-band-primary)')
+
+      const bottomEdge = style(baseCell, 2, 4, 2, null) // row 2 is a box's bottom edge
+      expect(bottomEdge.boxShadow).toBe('inset 0 -4px 0 0 var(--color-band-primary)')
+    })
+
+    it('has no band-on-edge shadow when the banded side is not also a box edge', () => {
+      const s = style(baseCell, 4, 2, 4, 7) // row 4 is box-interior (row%3=1)
+      expect(s.boxShadow).toBeUndefined()
     })
 
     it('bands all four sides of the focused box\'s own center cell when it is in both the focused row and column', () => {

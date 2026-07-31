@@ -47,6 +47,20 @@ import type { CellDisplayState } from './cellLabel'
  * cells; this sidesteps that class of bug entirely instead of re-ordering
  * around it.)
  *
+ * On a box-boundary side, the border above is always --box-color — the band
+ * never gets a look-in there at all, since a `border-*-color` can only be
+ * one color at a time. That's correct on non-edge sides (a plain border,
+ * nothing to compete with) but on the specific side that's BOTH a box edge
+ * AND part of the selected row/column, it meant the band's white line
+ * simply vanished for that entire stretch — reported explicitly ("the
+ * outline does not show on the border side of a box"). Fixed with a second,
+ * independent layer: a directional inset box-shadow (offset-only, no blur —
+ * `inset 4px 0 0 0 color` paints a solid strip flush against one inner edge,
+ * the standard "one-sided inset border" trick) drawn in --color-band-primary
+ * on exactly that edge, clipped to the padding box so it can never bleed
+ * into the border's own colored strip — it reads as the band continuing
+ * just inside the box edge, rather than replacing that edge's color.
+ *
  * Box-edge width went through several rounds of adjustment (8px/10px, then
  * 12px/14px, then a thin 2px/4px, then back up to 10px/12px) before landing
  * on 5px/7px. Banded sides stay at 4px, matching the visual weight the band
@@ -179,6 +193,19 @@ export function buildCellInlineStyle(
 
   if (cell.isSelected) {
     style.boxShadow = 'inset 0 0 0 3px var(--color-ring-primary), inset 0 0 0 6px var(--color-ring-secondary)'
+  } else {
+    // See the module doc: on a box-boundary side that's also part of the
+    // band, the border above is entirely --box-color, so add the band line
+    // back in as a separate inset strip just inside that edge. At most one
+    // of these four ever applies to a given cell (row-band top/bottom and
+    // col-band left/right are already mutually exclusive per the module
+    // doc), so there's never more than one layer here.
+    const bandOnEdge: string[] = []
+    if (inSelectedRow && topIsEdge) bandOnEdge.push(`inset 0 ${BAND_WIDTH} 0 0 var(--color-band-primary)`)
+    if (inSelectedRow && bottomIsEdge) bandOnEdge.push(`inset 0 -${BAND_WIDTH} 0 0 var(--color-band-primary)`)
+    if (inSelectedCol && leftIsEdge) bandOnEdge.push(`inset ${BAND_WIDTH} 0 0 0 var(--color-band-primary)`)
+    if (inSelectedCol && rightIsEdge) bandOnEdge.push(`inset -${BAND_WIDTH} 0 0 0 var(--color-band-primary)`)
+    if (bandOnEdge.length > 0) style.boxShadow = bandOnEdge.join(', ')
   }
 
   return style as CSSProperties
