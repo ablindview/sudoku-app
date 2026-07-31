@@ -214,13 +214,18 @@
   max-width: calc(var(--cell-size) * 9);
 }
 
-/* Each row still wraps at narrow widths rather than shrinking buttons below
-   the 44px touch-target floor every other button in this app already holds
-   to (base.css) — the 5/4 split is deliberate, but a sub-wrap within a row
-   on a very narrow screen is still better than a squashed button. */
+/* Never wraps — Pause/Resume and Clear must stay on the same line as the
+   digits they sit next to (requested explicitly), and plain `flex-wrap`
+   can't keep specific items pinned to a line while their siblings wrap
+   freely; the only way to guarantee it is to disallow wrapping for the
+   whole row. Buttons shrink (flex-shrink, the default) before the row
+   would overflow; `overflow-x: auto` is the last-resort fallback on an
+   extremely narrow viewport, same pattern .app-shell already uses for the
+   same reason. */
 .number-pad-row {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  overflow-x: auto;
   gap: 0.5rem;
 }
 
@@ -233,7 +238,11 @@
    cell borders — same visual weight as a plain grid line, not a new one. */
 .number-pad-button {
   flex: 1 1 2.5rem;
-  min-width: 2.5rem;
+  /* Matches the 44px min-height every button already holds to (base.css) —
+     without this, `nowrap` (see .number-pad-row above) lets a button shrink
+     to its old 2.5rem/40px flex-basis before the row starts scrolling,
+     undercutting that floor on width specifically. */
+  min-width: 44px;
   background: var(--digit-bg, var(--color-surface));
   color: var(--digit-ink, var(--color-text));
   border-width: 3px;
