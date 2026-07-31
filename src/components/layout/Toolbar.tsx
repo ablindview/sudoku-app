@@ -3,6 +3,7 @@ import { toRowCol } from '../../engine/board'
 import type { Difficulty } from '../../engine/types'
 import { useAnnouncer } from '../../a11y/useAnnouncer'
 import { useGameDispatch, useGameState, useNewGame } from '../../game/useGame'
+import { SettingsPanel } from '../settingsPanel/SettingsPanel'
 
 const DIFFICULTY_LABELS: Record<Difficulty, string> = {
   easy: 'Easy',
@@ -104,6 +105,7 @@ export function Toolbar() {
         <button type="button" onClick={handleCheckBoard} disabled={gameplayDisabled}>
           Check Board
         </button>
+        <SettingsPanel />
       </div>
     </div>
   )

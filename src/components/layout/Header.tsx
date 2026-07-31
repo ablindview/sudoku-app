@@ -1,5 +1,3 @@
-import { SettingsPanel } from '../settingsPanel/SettingsPanel'
-
 export function Header() {
   return (
     <header className="app-header">
@@ -7,7 +5,6 @@ export function Header() {
         <h1>Accessible Sudoku</h1>
         <span className="beta-badge">BETA</span>
       </div>
-      <SettingsPanel />
     </header>
   )
 }

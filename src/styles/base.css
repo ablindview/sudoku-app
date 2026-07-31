@@ -97,17 +97,20 @@ button[aria-pressed='true'] {
 }
 
 .app-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  flex-wrap: wrap;
+  margin-block-end: 1rem;
 }
 
 .app-title-row {
   display: flex;
   align-items: center;
   gap: 0.6rem;
+}
+
+/* The browser's own default h1 margin (~0.67em of its own, large font-size)
+   was the actual source of the big gap before the toolbar — reset it here
+   rather than fighting it with a bigger negative margin elsewhere. */
+.app-title-row h1 {
+  margin: 0;
 }
 
 /* A fixed red/white pair regardless of theme — this is a "still in
