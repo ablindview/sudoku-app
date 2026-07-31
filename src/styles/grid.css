@@ -199,18 +199,29 @@
 
 /* Tap-only digit entry row below the grid — see NumberPad.tsx. A <fieldset>
    for the group semantics oxlint's jsx-a11y prefers over role="group", so
-   its default border/margin/padding are reset here before the actual flex
-   layout. Wraps at narrow widths rather than shrinking buttons below the
-   44px touch-target floor every other button in this app already holds to
-   (base.css). */
+   its default border/margin/padding are reset here before the actual layout.
+   Two explicit rows (1-5 + Pause/Resume, then 6-9 + Clear) stacked in a
+   column, rather than one row left to wrap on its own — requested
+   explicitly, so the row boundary is a deliberate 5/4 split, not wherever
+   the viewport happens to wrap. */
 .number-pad {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 0.5rem;
   margin: 1rem 0 0;
   padding: 0;
   border: 0;
   max-width: calc(var(--cell-size) * 9);
+}
+
+/* Each row still wraps at narrow widths rather than shrinking buttons below
+   the 44px touch-target floor every other button in this app already holds
+   to (base.css) — the 5/4 split is deliberate, but a sub-wrap within a row
+   on a very narrow screen is still better than a squashed button. */
+.number-pad-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 /* Background/color override the base button rule; border-width is bumped
@@ -230,7 +241,8 @@
   font-size: 1.25rem;
 }
 
-.number-pad-clear {
+.number-pad-clear,
+.number-pad-pause {
   flex: 1 1 6rem;
   font-weight: 700;
 }

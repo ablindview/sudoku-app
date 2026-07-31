@@ -21,7 +21,6 @@ export function Toolbar() {
   const previousStatus = useRef(state.status)
 
   const gameplayDisabled = state.status !== 'playing'
-  const canTogglePause = state.status === 'playing' || state.status === 'paused'
 
   // Keep the "next game" select in sync with whatever game is actually
   // running (it only diverges once the player changes it, ahead of clicking
@@ -47,16 +46,6 @@ export function Toolbar() {
   function handleNewGame() {
     newGame(pendingDifficulty)
     announce(`New game started, ${DIFFICULTY_LABELS[pendingDifficulty]} difficulty`)
-  }
-
-  function handleTogglePause() {
-    if (state.status === 'playing') {
-      dispatch({ type: 'PAUSE' })
-      announce('Puzzle paused')
-    } else if (state.status === 'paused') {
-      dispatch({ type: 'RESUME' })
-      announce('Puzzle resumed')
-    }
   }
 
   function handleToggleNotes() {
@@ -106,9 +95,6 @@ export function Toolbar() {
         </button>
       </div>
       <div className="toolbar-group">
-        <button type="button" onClick={handleTogglePause} disabled={!canTogglePause}>
-          {state.status === 'paused' ? 'Resume' : 'Pause'}
-        </button>
         <button type="button" aria-pressed={state.notesMode} onClick={handleToggleNotes} disabled={gameplayDisabled}>
           Notes
         </button>
